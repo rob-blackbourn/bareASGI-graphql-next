@@ -31,6 +31,7 @@ class GraphQLWebSocketHandlerInstance:
         self.web_socket = web_socket
         self.info = info
         self._subscriptions: MutableMapping[str, AsyncIterator[graphql.ExecutionResult]] = {}
+        self._is_closed = False
 
     async def start(self):
         await self._on_open()
@@ -43,6 +44,8 @@ class GraphQLWebSocketHandlerInstance:
 
         except ProtocolError as error:
             logger.error(f'Failed to process message: {error}')
+        except EOFError:
+            self._is_closed = True
         except Exception as error:
             logger.error(f'Internal error: {error}')
 
@@ -53,10 +56,14 @@ class GraphQLWebSocketHandlerInstance:
 
     async def _on_close(self) -> None:
         await self._unsubscribe_all()
-        await self.web_socket.close()
+        if not self._is_closed:
+            await self.web_socket.close()
 
     async def _read_message(self) -> Tuple[str, Optional[str], Optional[dict]]:
         text = await self.web_socket.receive()
+        if text is None:
+            raise EOFError
+
         if not isinstance(text, str):
             raise ProtocolError('Expected the message to be a string.')
 

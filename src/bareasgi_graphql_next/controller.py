@@ -48,6 +48,8 @@ class GraphQLController:
     @classmethod
     async def _get_query_document(cls, headers: List[Header], content: Content):
         content_type = next((v for k, v in headers if k == b'content-type'), None)
+        content_type, parameters = content_type.split(b';', maxsplit=1)
+        # b'text/plain;charset=UTF-8'
 
         if content_type == b'application/graphql':
             return {'query': await text_reader(content)}
