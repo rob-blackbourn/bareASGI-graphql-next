@@ -16,4 +16,4 @@ class GraphQLWebSocketHandler:
 
     async def __call__(self, scope: Scope, info: Info, matches: RouteMatches, web_socket: WebSocket) -> None:
         instance = GraphQLWebSocketHandlerInstance(self.schema, web_socket, info)
-        await instance.start()
+        await instance.start(scope['subprotocols'])

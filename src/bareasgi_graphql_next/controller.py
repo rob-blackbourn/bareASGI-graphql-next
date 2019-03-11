@@ -1,4 +1,4 @@
-from cgi import parse_multipart, parse_header
+from cgi import parse_multipart
 # noinspection PyPackageRequirements
 from graphql import graphql, GraphQLSchema
 import io
@@ -20,7 +20,8 @@ from bareasgi.types import Header
 from bareasgi.middleware import mw
 
 from .template import make_template
-from .websocket_instance import GraphQLWebSocketHandlerInstance
+from .websocket_handler import GraphQLWebSocketHandler
+from .utils import parse_header
 
 
 class GraphQLController:
@@ -29,6 +30,7 @@ class GraphQLController:
         self.schema = schema
         self.path_prefix = path_prefix
         self.middleware = middleware
+        self.subscription_handler = GraphQLWebSocketHandler(schema)
 
     # noinspection PyUnusedLocal
     async def view_graphiql(self, scope: Scope, info: Info, matches: RouteMatches, content: Content) -> HttpResponse:
@@ -40,16 +42,13 @@ class GraphQLController:
         ]
         return 200, headers, text_writer(body)
 
-    # noinspection PyUnusedLocal
     async def handle_subscription(self, scope: Scope, info: Info, matches: RouteMatches, web_socket: WebSocket) -> None:
-        instance = GraphQLWebSocketHandlerInstance(self.schema, web_socket, info)
-        await instance.start()
+        await self.subscription_handler(scope, info, matches, web_socket)
 
     @classmethod
     async def _get_query_document(cls, headers: List[Header], content: Content):
         content_type = next((v for k, v in headers if k == b'content-type'), None)
-        content_type, parameters = content_type.split(b';', maxsplit=1)
-        # b'text/plain;charset=UTF-8'
+        content_type, parameters = parse_header(content_type)
 
         if content_type == b'application/graphql':
             return {'query': await text_reader(content)}
@@ -58,8 +57,7 @@ class GraphQLController:
         elif content_type == b'application/x-www-form-urlencoded':
             return parse_qs(await text_reader(content))
         elif content_type == b'multipart/form-data':
-            _, parameters = parse_header(content_type)
-            return parse_multipart(io.StringIO(await text_reader(content)), parameters["boundary"].encode("utf-8"))
+            return parse_multipart(io.StringIO(await text_reader(content)), parameters["boundary"])
         else:
             raise RuntimeError('Content type not supported')
 
