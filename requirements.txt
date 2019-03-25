@@ -1,2 +1,2 @@
-bareASGI~=0.3
+bareASGI~=1.0
 graphql-core-next~=1.0
