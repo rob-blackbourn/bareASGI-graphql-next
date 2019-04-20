@@ -17,6 +17,7 @@ setup(
     version=__version__,
     description='GraphQL support for the bareASGI framework',
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/rob-blackbourn/bareasgi_graphql_next',
     author='Rob Blackbourn',
     author_email='rob.blackbourn@googlemail.com',
