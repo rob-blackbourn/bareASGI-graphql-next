@@ -31,7 +31,7 @@ class GraphQLWebSocketHandlerInstance:
         self.schema = schema
         self.web_socket = web_socket
         self.info = info
-        self._subscriptions: MutableMapping[int, AsyncIterator[graphql.ExecutionResult]] = {}
+        self._subscriptions: MutableMapping[str, AsyncIterator[graphql.ExecutionResult]] = {}
         self._is_closed = False
 
     async def start(self, subprotocols: List[str]):
@@ -62,7 +62,7 @@ class GraphQLWebSocketHandlerInstance:
         if not self._is_closed:
             await self.web_socket.close()
 
-    async def _read_message(self) -> Tuple[str, Optional[int], Optional[dict]]:
+    async def _read_message(self) -> Tuple[str, Optional[str], Optional[dict]]:
         text = await self.web_socket.receive()
         if text is None:
             raise EOFError
@@ -79,8 +79,8 @@ class GraphQLWebSocketHandlerInstance:
             raise ProtocolError("Expected field 'type' to be a string")
 
         id_ = message.get('id')
-        if not (id_ is None or isinstance(id_, int)):
-            raise ProtocolError("Expected field 'id' to be an int?")
+        if not (id_ is None or isinstance(id_, str)):
+            raise ProtocolError("Expected field 'id' to be an string?")
 
         payload = message.get('payload')
         if not (payload is None or isinstance(payload, dict)):
@@ -88,7 +88,7 @@ class GraphQLWebSocketHandlerInstance:
 
         return type_, id_, payload
 
-    async def _on_message(self, type_: str, id_: Optional[int], payload: Optional[dict]):
+    async def _on_message(self, type_: str, id_: Optional[str], payload: Optional[dict]):
 
         if type_ == GQL_CONNECTION_INIT:
             await self._on_connection_init(id_, payload)
@@ -103,7 +103,7 @@ class GraphQLWebSocketHandlerInstance:
         else:
             raise ProtocolError(f"Received unknown message type '{type_}'.")
 
-    async def _on_connection_init(self, id_: Optional[int], connection_params: Optional[Any]):
+    async def _on_connection_init(self, id_: Optional[str], connection_params: Optional[Any]):
         try:
             await self.web_socket.send(self.to_message('connection_ack', id_))
         except Exception as error:
@@ -114,7 +114,7 @@ class GraphQLWebSocketHandlerInstance:
     async def _on_connection_terminate(self):
         await self.web_socket.close(WS_INTERNAL_ERROR)
 
-    async def _on_start(self, id_: Optional[int], payload: Optional[Union[list, dict]]):
+    async def _on_start(self, id_: Optional[str], payload: Optional[Union[list, dict]]):
         try:
             # An id is required for a start operation.
             if id_ is None:
@@ -159,20 +159,20 @@ class GraphQLWebSocketHandlerInstance:
         except Exception as error:
             await self._send_error(GQL_ERROR, id_, error)
 
-    async def _on_stop(self, id_: int):
+    async def _on_stop(self, id_: str):
         await self._unsubscribe(id_)
 
-    async def _unsubscribe(self, id_: int) -> None:
+    async def _unsubscribe(self, id_: str) -> None:
         await self._subscriptions[id_].aclose()
 
     async def _unsubscribe_all(self):
         for id_ in self._subscriptions.keys():
             await self._unsubscribe(id_)
 
-    async def _send_error(self, type_: str, id_: Optional[int], error: Exception) -> None:
+    async def _send_error(self, type_: str, id_: Optional[str], error: Exception) -> None:
         await self.web_socket.send(self.to_message(type_, id_, {'message': str(error)}))
 
-    async def _send_execution_result(self, id_: int, execution_result: graphql.ExecutionResult) -> None:
+    async def _send_execution_result(self, id_: str, execution_result: graphql.ExecutionResult) -> None:
         result = dict()
 
         if execution_result.data:
@@ -184,7 +184,7 @@ class GraphQLWebSocketHandlerInstance:
         await self.web_socket.send(self.to_message(GQL_DATA, id_, result))
 
     @classmethod
-    def to_message(cls, type_: str, id_: Optional[int] = None, payload: Optional[Any] = None) -> str:
+    def to_message(cls, type_: str, id_: Optional[str] = None, payload: Optional[Any] = None) -> str:
         message = {'type': type_}
         if id_ is not None:
             message['id'] = id_
