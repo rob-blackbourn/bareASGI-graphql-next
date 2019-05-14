@@ -14,7 +14,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     requirements = [x.strip() for x in f.readlines() if x.strip()]
 
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 
 setup(
     name='bareasgi_graphql_next',
