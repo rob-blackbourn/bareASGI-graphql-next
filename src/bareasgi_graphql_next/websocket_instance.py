@@ -72,7 +72,6 @@ class GraphQLWebSocketHandlerInstance:
                     # Subscription tasks are done when they complete or are cancelled.
                     self._remove_subscription(task)
 
-
         await self._unsubscribe_all()
         if not self._is_closed:
             await self.web_socket.close()
