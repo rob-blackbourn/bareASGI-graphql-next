@@ -32,72 +32,47 @@ class GraphQLWebSocketHandlerInstance:
         self.schema = schema
         self.web_socket = web_socket
         self.info = info
-        self._subscriptions: MutableMapping[str, asyncio.Task] = {}
+        self._subscriptions: MutableMapping[str, asyncio.Future] = {}
         self._is_closed = False
 
     async def start(self, subprotocols: List[str]):
-        await self._on_open(subprotocols)
-
-        _type = GQL_CONNECTION_KEEP_ALIVE
-        try:
-            read_task: Optional[asyncio.Task] = None
-            pending: Set[asyncio.Task] = set()
-
-            while not (self._is_closed or _type in (GQL_CONNECTION_ERROR, GQL_CONNECTION_TERMINATE)):
-
-                if read_task is None or read_task not in pending:
-                    read_task = asyncio.create_task(self._read_message())
-                    pending.add(read_task)
-                for task in self._subscriptions.values():
-                    if task not in pending:
-                        pending.add(task)
-
-                done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
-
-                for task in done:
-                    if task == read_task:
-                        try:
-                            type_, id_, payload = task.result()
-                            await self._on_message(type_, id_, payload)
-                            read_task = None
-                        except EOFError:
-                            self._is_closed = True
-                            for task in pending:
-                                try:
-                                    id_ = self._get_subscription_id(task)
-                                    task.cancel()
-                                    await task
-                                    result = task.result()
-                                    await result.aclose()
-                                except Exception as error:
-                                    logger.exception('Failed to stop subscription')
-                        except ProtocolError as error:
-                            logger.error(f'Failed to process message: {error}')
-                            raise
-                        except Exception as error:
-                            logger.error(f'Internal error: {error}')
-                            raise
-                    else:
-                        # Subscription tasks are done when they complete or are cancelled.
-                        id_ = self._get_subscription_id(task)
-                        logger.debug(f'Subscription id {id_} has completed')
-                        del self._subscriptions[id_]
-
-        except Exception as error:
-            logger.exception(f'Internal error: {error}')
-
-        await self._on_close()
-
-    def _get_subscription_id(self, subscription: asyncio.Task) -> str:
-        id_ = next(id_ for id_, task in self._subscriptions.items() if task == subscription)
-        return id_
-
-    async def _on_open(self, subprotocols: List[str]) -> None:
-        if not WS_PROTOCOL in subprotocols:
+        if WS_PROTOCOL not in subprotocols:
             raise ProtocolError(f"Expected subprotocol '{WS_PROTOCOL}")
         await self.web_socket.accept(WS_PROTOCOL)
 
-    async def _on_close(self) -> None:
+        _type = GQL_CONNECTION_KEEP_ALIVE
+
+        read_task: Optional[asyncio.Task] = None
+        pending: Set[asyncio.Future] = set()
+
+        while not (self._is_closed or _type in (GQL_CONNECTION_ERROR, GQL_CONNECTION_TERMINATE)):
+
+            # We need to wait for the websocket and the subscriptions.
+            if read_task is None or read_task not in pending:
+                read_task = asyncio.create_task(self._read_message())
+                pending.add(read_task)
+            for task in self._subscriptions.values():
+                if task not in pending:
+                    pending.add(task)
+
+            done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+
+            for task in done:
+                if task == read_task:
+                    try:
+                        type_, id_, payload = task.result()
+                        await self._on_message(type_, id_, payload)
+                        read_task = None
+                    except EOFError:
+                        self._is_closed = True
+                        for pending_task in pending:
+                            await self._stop_subscription(pending_task)
+                            self._remove_subscription(pending_task)
+                else:
+                    # Subscription tasks are done when they complete or are cancelled.
+                    self._remove_subscription(task)
+
+
         await self._unsubscribe_all()
         if not self._is_closed:
             await self.web_socket.close()
@@ -143,6 +118,7 @@ class GraphQLWebSocketHandlerInstance:
         else:
             raise ProtocolError(f"Received unknown message type '{type_}'.")
 
+    # noinspection PyUnusedLocal
     async def _on_connection_init(self, id_: Optional[str], connection_params: Optional[Any]):
         try:
             await self.web_socket.send(self.to_message('connection_ack', id_))
@@ -167,6 +143,7 @@ class GraphQLWebSocketHandlerInstance:
             query, variable_values, operation_name = self.parse_start_payload(payload)
 
             document = graphql.parse(query)
+            # noinspection PyUnresolvedReferences
             if any(definition.operation is graphql.OperationType.SUBSCRIPTION for definition in document.definitions):
                 result = await graphql.subscribe(
                     self.schema,
@@ -188,10 +165,17 @@ class GraphQLWebSocketHandlerInstance:
                 await self._send_execution_result(id_, result)
                 return True
 
-            self._subscriptions[id_] = asyncio.create_task(self._process_subscription(id_, result))
+            self._add_subscription(id_, result)
 
         except Exception as error:
             await self._send_error(GQL_ERROR, id_, error)
+
+    def _add_subscription(self, id_: str, result: AsyncIterator):
+        self._subscriptions[id_] = asyncio.create_task(self._process_subscription(id_, result))
+
+    def _remove_subscription(self, future: asyncio.Future) -> None:
+        id_ = next(k for k, v in self._subscriptions.items() if v == future)
+        del self._subscriptions[id_]
 
     async def _process_subscription(self, id_: str, result: AsyncIterator) -> AsyncIterator:
         try:
@@ -206,11 +190,15 @@ class GraphQLWebSocketHandlerInstance:
     async def _on_stop(self, id_: str):
         await self._unsubscribe(id_)
 
-    async def _unsubscribe(self, id_: str) -> None:
-        self._subscriptions[id_].cancel()
-        await self._subscriptions[id_]
-        result = self._subscriptions[id_].result()
+    @classmethod
+    async def _stop_subscription(cls, future: asyncio.Future) -> None:
+        future.cancel()
+        await future
+        result = future.result()
         await result.aclose()
+
+    async def _unsubscribe(self, id_: str) -> None:
+        await self._stop_subscription(self._subscriptions[id_])
 
     async def _unsubscribe_all(self):
         for id_ in self._subscriptions.keys():
