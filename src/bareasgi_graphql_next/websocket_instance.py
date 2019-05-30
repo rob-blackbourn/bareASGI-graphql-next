@@ -1,5 +1,5 @@
 import asyncio
-from bareasgi import Info, WebSocket
+from baretypes import Info, WebSocket
 import graphql
 import json
 import logging
@@ -37,6 +37,7 @@ class GraphQLWebSocketHandlerInstance:
         self.info = info
         self._subscriptions: MutableMapping[Id, asyncio.Future] = {}
         self._is_closed = False
+
 
     async def start(self, subprotocols: List[str]):
         if WS_PROTOCOL not in subprotocols:
@@ -79,6 +80,7 @@ class GraphQLWebSocketHandlerInstance:
         if not self._is_closed:
             await self.web_socket.close()
 
+
     async def _read_message(self) -> Tuple[str, Optional[Id], Optional[dict]]:
         text = await self.web_socket.receive()
         if text is None:
@@ -105,6 +107,7 @@ class GraphQLWebSocketHandlerInstance:
 
         return type_, id_, payload
 
+
     async def _on_message(self, type_: str, id_: Optional[Id], payload: Optional[dict]):
 
         if type_ == GQL_CONNECTION_INIT:
@@ -120,6 +123,7 @@ class GraphQLWebSocketHandlerInstance:
         else:
             raise ProtocolError(f"Received unknown message type '{type_}'.")
 
+
     # noinspection PyUnusedLocal
     async def _on_connection_init(self, id_: Optional[Id], connection_params: Optional[Any]):
         try:
@@ -129,8 +133,10 @@ class GraphQLWebSocketHandlerInstance:
             await self.web_socket.close(WS_INTERNAL_ERROR)
             raise
 
+
     async def _on_connection_terminate(self):
         await self.web_socket.close(WS_INTERNAL_ERROR)
+
 
     async def _on_start(self, id_: Optional[Id], payload: Optional[Union[list, dict]]):
         try:
@@ -172,12 +178,15 @@ class GraphQLWebSocketHandlerInstance:
         except Exception as error:
             await self._send_error(GQL_ERROR, id_, error)
 
+
     def _add_subscription(self, id_: Id, result: AsyncIterator) -> None:
         self._subscriptions[id_] = asyncio.create_task(self._process_subscription(id_, result))
+
 
     def _remove_subscription(self, future: asyncio.Future) -> None:
         id_ = next(k for k, v in self._subscriptions.items() if v == future)
         del self._subscriptions[id_]
+
 
     async def _process_subscription(self, id_: Id, result: AsyncIterator) -> AsyncIterator:
         try:
@@ -189,8 +198,10 @@ class GraphQLWebSocketHandlerInstance:
 
         return result
 
+
     async def _on_stop(self, id_: Id) -> None:
         await self._unsubscribe(id_)
+
 
     @classmethod
     async def _stop_subscription(cls, future: asyncio.Future) -> None:
@@ -199,15 +210,19 @@ class GraphQLWebSocketHandlerInstance:
         result = future.result()
         await result.aclose()
 
+
     async def _unsubscribe(self, id_: Id) -> None:
         await self._stop_subscription(self._subscriptions[id_])
+
 
     async def _unsubscribe_all(self) -> None:
         for id_ in self._subscriptions.keys():
             await self._unsubscribe(id_)
 
+
     async def _send_error(self, type_: str, id_: Optional[Id], error: Exception) -> None:
         await self.web_socket.send(self.to_message(type_, id_, {'message': str(error)}))
+
 
     async def _send_execution_result(self, id_: Id, execution_result: graphql.ExecutionResult) -> None:
         result = dict()
@@ -220,6 +235,7 @@ class GraphQLWebSocketHandlerInstance:
 
         await self.web_socket.send(self.to_message(GQL_DATA, id_, result))
 
+
     @classmethod
     def to_message(cls, type_: str, id_: Optional[Id] = None, payload: Optional[Any] = None) -> str:
         message = {'type': type_}
@@ -228,6 +244,7 @@ class GraphQLWebSocketHandlerInstance:
         if payload is not None:
             message['payload'] = payload
         return json.dumps(message)
+
 
     @classmethod
     def parse_start_payload(

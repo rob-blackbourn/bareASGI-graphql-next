@@ -5,18 +5,9 @@ import io
 from typing import List
 from urllib.parse import parse_qs
 import json
-from bareasgi import (
-    Application,
-    Scope,
-    Info,
-    RouteMatches,
-    Content,
-    HttpResponse,
-    WebSocket,
-    text_writer,
-    text_reader
-)
-from bareasgi.types import Header
+from bareasgi import Application
+from bareutils import text_reader, text_writer
+from baretypes import (Header, HttpResponse, Scope, Info, RouteMatches, Content, WebSocket)
 from bareasgi.middleware import mw
 
 from .template import make_template
@@ -32,6 +23,7 @@ class GraphQLController:
         self.middleware = middleware
         self.subscription_handler = GraphQLWebSocketHandler(schema)
 
+
     # noinspection PyUnusedLocal
     async def view_graphiql(self, scope: Scope, info: Info, matches: RouteMatches, content: Content) -> HttpResponse:
         host, port = scope['server']
@@ -42,8 +34,10 @@ class GraphQLController:
         ]
         return 200, headers, text_writer(body)
 
+
     async def handle_subscription(self, scope: Scope, info: Info, matches: RouteMatches, web_socket: WebSocket) -> None:
         await self.subscription_handler(scope, info, matches, web_socket)
+
 
     @classmethod
     async def _get_query_document(cls, headers: List[Header], content: Content):
@@ -57,9 +51,10 @@ class GraphQLController:
         elif content_type == b'application/x-www-form-urlencoded':
             return parse_qs(await text_reader(content))
         elif content_type == b'multipart/form-data':
-            return parse_multipart(io.StringIO(await text_reader(content)), parameters["boundary"])
+            return parse_multipart(io.StringIO(await text_reader(content)), parameters[b"boundary"])
         else:
             raise RuntimeError('Content type not supported')
+
 
     # noinspection PyUnusedLocal
     async def handle_graphql(self, scope: Scope, info: Info, matches: RouteMatches, content: Content) -> HttpResponse:

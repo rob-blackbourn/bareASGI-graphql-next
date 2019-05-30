@@ -1,4 +1,4 @@
-from bareasgi import (
+from baretypes import (
     Scope,
     Info,
     RouteMatches,
@@ -13,6 +13,7 @@ class GraphQLWebSocketHandler:
 
     def __init__(self, schema: graphql.GraphQLSchema):
         self.schema = schema
+
 
     async def __call__(self, scope: Scope, info: Info, matches: RouteMatches, web_socket: WebSocket) -> None:
         instance = GraphQLWebSocketHandlerInstance(self.schema, web_socket, info)
