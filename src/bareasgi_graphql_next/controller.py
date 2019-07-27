@@ -23,7 +23,6 @@ class GraphQLController:
         self.middleware = middleware
         self.subscription_handler = GraphQLWebSocketHandler(schema)
 
-
     # noinspection PyUnusedLocal
     async def view_graphiql(self, scope: Scope, info: Info, matches: RouteMatches, content: Content) -> HttpResponse:
         host, port = scope['server']
@@ -34,10 +33,8 @@ class GraphQLController:
         ]
         return 200, headers, text_writer(body)
 
-
     async def handle_subscription(self, scope: Scope, info: Info, matches: RouteMatches, web_socket: WebSocket) -> None:
         await self.subscription_handler(scope, info, matches, web_socket)
-
 
     @classmethod
     async def _get_query_document(cls, headers: List[Header], content: Content):
@@ -54,7 +51,6 @@ class GraphQLController:
             return parse_multipart(io.StringIO(await text_reader(content)), parameters[b"boundary"])
         else:
             raise RuntimeError('Content type not supported')
-
 
     # noinspection PyUnusedLocal
     async def handle_graphql(self, scope: Scope, info: Info, matches: RouteMatches, content: Content) -> HttpResponse:
