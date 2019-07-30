@@ -5,9 +5,7 @@ from graphql import (
     GraphQLFloat
 )
 
-from .long import GraphQLLong
-
-CpuTimes = GraphQLObjectType(
+CpuTimesType = GraphQLObjectType(
     name='CpuTimes',
     fields=lambda: {
         'user': GraphQLField(GraphQLNonNull(GraphQLFloat)),
@@ -19,6 +17,6 @@ CpuTimes = GraphQLObjectType(
         'softirq': GraphQLField(GraphQLNonNull(GraphQLFloat)),
         'steal': GraphQLField(GraphQLNonNull(GraphQLFloat)),
         'guest': GraphQLField(GraphQLNonNull(GraphQLFloat)),
-        'guest_nice': GraphQLField(GraphQLNonNull(GraphQLFloat)),
+        'guestNice': GraphQLField(GraphQLNonNull(GraphQLFloat)),
     }
 )

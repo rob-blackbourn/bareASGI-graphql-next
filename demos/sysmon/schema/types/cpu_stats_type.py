@@ -4,14 +4,14 @@ from graphql import (
     GraphQLNonNull
 )
 
-from .long import GraphQLLong
+from .long_type import GraphQLLong
 
-CpuStats = GraphQLObjectType(
+CpuStatsType = GraphQLObjectType(
     name='CpuStats',
     fields=lambda: {
-        'ctx_switches': GraphQLField(GraphQLNonNull(GraphQLLong)),
+        'ctxSwitches': GraphQLField(GraphQLNonNull(GraphQLLong)),
         'interrupts': GraphQLField(GraphQLNonNull(GraphQLLong)),
-        'soft_interrupts': GraphQLField(GraphQLNonNull(GraphQLLong)),
+        'softInterrupts': GraphQLField(GraphQLNonNull(GraphQLLong)),
         'syscalls': GraphQLField(GraphQLNonNull(GraphQLLong))
     }
 )

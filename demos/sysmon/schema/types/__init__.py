@@ -1,11 +1,11 @@
-from .cpu_stats import CpuStats
-from .cpu_times import CpuTimes
-from .cpu_summary import CpuSummary
-from .cpu_summary_list import CpuSammryList
+from .cpu_stats_type import CpuStatsType
+from .cpu_times_type import CpuTimesType
+from .cpu_type import CpuType
+from .system_type import SystemType
 
 __all__ = [
-    'CpuStats',
-    'CpuTimes',
-    'CpuSummary',
-    'CpuSammryList'
+    'CpuStatsType',
+    'CpuTimesType',
+    'CpuType',
+    'SystemType'
 ]
