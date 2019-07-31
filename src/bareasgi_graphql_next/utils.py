@@ -1,4 +1,6 @@
-from typing import Tuple, Mapping, MutableMapping, Iterator
+import asyncio
+from asyncio import Event
+from typing import Tuple, Mapping, MutableMapping, Iterator, AsyncIterator
 
 
 def _parseparam(s: bytes) -> Iterator[bytes]:
@@ -33,3 +35,21 @@ def parse_header(line: bytes) -> Tuple[bytes, Mapping[bytes, bytes]]:
                 value = value.replace(b'\\\\', b'\\').replace(b'\\"', b'"')
             params[name] = value
     return key, params
+
+
+def cancellable_aiter(async_iterator: AsyncIterator, cancellation_event: Event) -> AsyncIterator:
+    cancellation_task = cancellation_event.wait()
+    result_iter = async_iterator.__aiter__()
+    while not cancellation_event.is_set():
+        done, pending = await asyncio.wait(
+            [cancellation_task, result_iter.__anext__()],
+            return_when=asyncio.FIRST_COMPLETED
+        )
+        for done_task in done:
+            if done_task == cancellation_task:
+                for pending_task in pending:
+                    pending_task.cancel()
+                break
+            else:
+                yield done_task.result()
+    raise StopAsyncIteration

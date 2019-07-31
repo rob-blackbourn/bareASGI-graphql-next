@@ -1,8 +1,9 @@
 import asyncio
+from functools import partial
 import logging
 from bareasgi import Application
 from bareasgi_cors import CORSMiddleware
-from bareasgi_graphql_next import add_graphql_next
+from bareasgi_graphql_next import add_graphql_next, GraphQLController
 from baretypes import Scope, Info, RouteMatches, Content, HttpResponse
 from bareutils import text_writer
 from .system_monitor import SystemMonitor
@@ -23,6 +24,15 @@ async def stop_service(scope: Scope, info: Info, request) -> None:
     system_monitor_task: asyncio.Task = info['system_monitor_task']
     system_monitor.shutdown()
     await system_monitor_task
+
+
+async def start_graphql(scope: Scope, info: Info, request, *, app: Application) -> None:
+    info['graphql_controller'] = add_graphql_next(app, schema, path_prefix='/test')
+
+
+async def stop_graphql(scope: Scope, info: Info, request) -> None:
+    graphql_controller: GraphQLController = info['graphql_controller']
+    graphql_controller.shutdown()
 
 
 async def graphql_handler(
@@ -79,6 +89,7 @@ async def graphql_handler(
           .then(response => {
             console.log(response)
             if (response.status == 200) {
+              // This is a query result, so just show the data.
               response.text()
                 .then(text => {
                   responseField.innerHTML = text
@@ -87,6 +98,9 @@ async def graphql_handler(
                   console.log(error)
                 })
             } else if (response.status == 201) {
+              // This is a subscription response. An endpoint is
+              // returned in the "Location" header which we can
+              // consume with an EventSource.
               var location = response.headers.get('location')
               eventSource = new EventSource(location)
               eventSource.onmessage = function(event) {
@@ -120,9 +134,9 @@ def make_application() -> Application:
         shutdown_handlers=[stop_service],
         middlewares=[cors_middleware]
     )
-    add_graphql_next(app, schema, path_prefix='/test')
 
-    info['http_router'] = app.http_router
+    app.startup_handlers.append(partial(start_graphql, app=app))
+    app.shutdown_handlers.append(stop_graphql)
 
     app.http_router.add({'GET'}, '/test/graphql2', graphql_handler)
 
