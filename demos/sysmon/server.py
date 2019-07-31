@@ -2,6 +2,8 @@ import asyncio
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
 import logging
+import os
+import socket
 from typing import Optional
 import uvicorn
 from sysmon.app import make_application
@@ -71,12 +73,14 @@ def start_http_server(
 
 
 def start_server() -> None:
-    http_server = 'uvicorn'
-    host = '0.0.0.0'
+    hostname = socket.gethostname()
+
+    http_server = 'hypercorn'  # or 'uvicorn'
+    host = '127.0.0.1'
     port = 9009
-    ssl_enabled = False
-    keyfile = None
-    certfile = None
+    ssl_enabled = True
+    keyfile = os.path.expanduser(f'~/.keys/{hostname}.key')
+    certfile = os.path.expanduser(f'~/.keys/{hostname}.crt')
 
     initialise_logging()
     start_http_server(http_server, host, port, ssl_enabled, keyfile, certfile)

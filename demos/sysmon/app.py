@@ -6,6 +6,7 @@ from bareasgi_cors import CORSMiddleware
 from bareasgi_graphql_next import add_graphql_next, GraphQLController
 from baretypes import Scope, Info, RouteMatches, Content, HttpResponse
 from bareutils import text_writer
+import bareutils.header as header
 from .system_monitor import SystemMonitor
 from .schema import schema
 
@@ -41,6 +42,14 @@ async def graphql_handler(
         matches: RouteMatches,
         content: Content
 ) -> HttpResponse:
+    if scope['http_version'] in ('2', '2.0'):
+        authority = header.find(
+            b':authority', scope['headers']).decode('ascii')
+    else:
+        host, port = scope['server']
+        authority = f'{host}:{port}'
+    sse_url = f"{scope['scheme']}://{authority}/test/graphql"
+
     html = """
 <!DOCTYPE html>
 <html>
@@ -57,10 +66,18 @@ async def graphql_handler(
     </form>
     
     <div id="response">Response goes here...</div>
+    
+    <h4>Example Query</h4>
+
+    <p>query {{ latest {{ timestamp cpu {{ percent }} }} }}</p>
+    
+    <h4>Example Subscription</h4>
+    
+    <p>subscription {{ system {{ timestamp cpu {{ percent }} }} }}</p>
 
   <script language="javascript" type="text/javascript">
 
-    window.onload = function() {
+    window.onload = function() {{
 
       var form = document.getElementById('message-form')
       var messageField = document.getElementById('message')
@@ -68,60 +85,60 @@ async def graphql_handler(
       var eventSource = null
 
       // Send a message when the form is submitted.
-      form.onsubmit = function(e) {
+      form.onsubmit = function(e) {{
         e.preventDefault()
         
-        if (eventSource !== null && eventSource.readyState != 2) {
+        if (eventSource !== null && eventSource.readyState != 2) {{
           eventSource.close()
-        }
+        }}
 
         // Retrieve the message from the textarea.
         var query = messageField.value
 
         // Send the message
-        fetch('http://127.0.0.1:9009/test/graphql', {
+        fetch('{sse_url}', {{
           method: 'POST',
           mode: 'same-origin',
-          body: JSON.stringify({
+          body: JSON.stringify({{
             query
-          })
-        })
-          .then(response => {
+          }})
+        }})
+          .then(response => {{
             console.log(response)
-            if (response.status == 200) {
+            if (response.status == 200) {{
               // This is a query result, so just show the data.
               response.text()
-                .then(text => {
+                .then(text => {{
                   responseField.innerHTML = text
-                })
-                .catch(error => {
+                }})
+                .catch(error => {{
                   console.log(error)
-                })
-            } else if (response.status == 201) {
+                }})
+            }} else if (response.status == 201) {{
               // This is a subscription response. An endpoint is
               // returned in the "Location" header which we can
               // consume with an EventSource.
               var location = response.headers.get('location')
               eventSource = new EventSource(location)
-              eventSource.onmessage = function(event) {
+              eventSource.onmessage = function(event) {{
                 responseField.innerHTML = event.data
-              }
-            } else {
+              }}
+            }} else {{
               throw new Error("Unhandled response")
-            }
-          })
-          .catch(error => {
+            }}
+          }})
+          .catch(error => {{
             console.error(error)
-          })
+          }})
         
         return false
-      }
-    }  
+      }}
+    }}  
   
   </script>     
   </body>
 </html>
-    """
+    """.format(sse_url=sse_url)
     return 200, [(b'content-type', b'text/html')], text_writer(html)
 
 
