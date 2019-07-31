@@ -9,7 +9,6 @@ from typing import List, AsyncIterator, MutableMapping
 from urllib.parse import parse_qs
 import uuid
 from bareasgi import Application
-from bareasgi.utils import aiter, anext
 import bareutils.header as header
 from bareutils import text_reader, text_writer, response_code
 from baretypes import (Header, HttpResponse, Scope, Info, RouteMatches, Content, WebSocket)
@@ -17,7 +16,7 @@ from bareasgi.middleware import mw
 
 from .template import make_template
 from .websocket_handler import GraphQLWebSocketHandler
-from .utils import parse_header
+from .utils import parse_header, cancellable_aiter
 
 
 class GraphQLController:
@@ -136,24 +135,11 @@ class GraphQLController:
 
         async def send_events():
             try:
-                cancellation_task = self.cancellation_event.wait()
-                result_iter = result.__aiter__()
-                while not self.cancellation_event.is_set():
-                    done, pending = await asyncio.wait(
-                        [cancellation_task, result_iter.__anext__()],
-                        return_when=asyncio.FIRST_COMPLETED
-                    )
-                    for done_task in done:
-                        if done_task == cancellation_task:
-                            for pending_task in pending:
-                                pending_task.cancel()
-                            break
-                        else:
-                            val = done_task.result()
-                            text = json.dumps(val)
-                            yield f'data: {text}\n\n\n'.encode('utf-8')
+                async for val in cancellable_aiter(result, self.cancellation_event):
+                    text = json.dumps(val)
+                    yield f'data: {text}\n\n\n'.encode('utf-8')
 
-            except asyncio.CancelledError as error:
+            except asyncio.CancelledError:
                 pass
 
         headers = [

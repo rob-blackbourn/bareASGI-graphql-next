@@ -37,8 +37,20 @@ def parse_header(line: bytes) -> Tuple[bytes, Mapping[bytes, bytes]]:
     return key, params
 
 
-def cancellable_aiter(async_iterator: AsyncIterator, cancellation_event: Event) -> AsyncIterator:
-    cancellation_task = cancellation_event.wait()
+async def cancellable_aiter(
+        async_iterator: AsyncIterator,
+        cancellation_event: Event,
+        *,
+        cancel_pending: bool = True
+) -> AsyncIterator:
+    """Create a cancellable async iterator.
+
+    :param async_iterator: The async iterator to wrap
+    :param cancellation_event: The asyncio Event to controll cancellation.
+    :param cancel_pending: If True cancel pending tasks, otherwaise wait them.
+    :return: The wrapped async iterator
+    """
+    cancellation_task = asyncio.create_task(cancellation_event.wait())
     result_iter = async_iterator.__aiter__()
     while not cancellation_event.is_set():
         done, pending = await asyncio.wait(
@@ -48,8 +60,11 @@ def cancellable_aiter(async_iterator: AsyncIterator, cancellation_event: Event) 
         for done_task in done:
             if done_task == cancellation_task:
                 for pending_task in pending:
-                    pending_task.cancel()
+                    if cancel_pending:
+                        pending_task.cancel()
+                    else:
+                        await pending_task
+                        yield pending_task.result()
                 break
             else:
                 yield done_task.result()
-    raise StopAsyncIteration
