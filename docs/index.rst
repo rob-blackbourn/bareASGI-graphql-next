@@ -47,6 +47,8 @@ A utility function `add_graphql_next` is provided.
     :caption: Contents:
 
     api
+    ws_subscriptions
+    sse_subscriptions
 
 Indices and tables
 ==================
@@ -54,6 +56,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-* :ref:`ws_subscriptions`
-* :ref:`sse_subscriptions`
 
