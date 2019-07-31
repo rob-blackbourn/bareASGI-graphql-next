@@ -32,7 +32,7 @@ if from the server to the client.
 
 In this implementation queries, mutations and subscriptions are all made using the `fetch` api.
 With a successful query or mutation the response status code is 200, and the body contains the
-result. Which a subscription the status code 201 is returned, and the `location` header contains
+result. For a subscription the status code 201 is returned, and the `location` header contains
 a unique url which is used to request server sent events through the
 `EventSource <https://developer.mozilla.org/en-US/docs/Web/API/EventSource>`_ API.
 
