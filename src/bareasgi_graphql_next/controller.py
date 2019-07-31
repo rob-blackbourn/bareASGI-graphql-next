@@ -8,7 +8,7 @@ from graphql import OperationType, GraphQLSchema
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 import io
 import json
-from typing import List, MutableMapping
+from typing import List, MutableMapping, Optional
 from urllib.parse import parse_qs
 import uuid
 from bareasgi import Application
@@ -207,9 +207,21 @@ def add_graphql_next(
         path_prefix: str = '',
         rest_middleware=None,
         view_middleware=None,
-        graphql_middleware=None
+        graphql_middleware=None,
+        subscription_expiry: Optional[float] = 60
 ) -> GraphQLController:
-    controller = GraphQLController(schema, path_prefix, graphql_middleware)
+    """Add graphql support to an bareASGI application.
+
+    :param app: The bareASGI application.
+    :param schema: The GraphQL schema to use.
+    :param path_prefix: An optional path prefix from which to provide enedpoints.
+    :param rest_middleware: Middleware for the rest end points.
+    :param view_middleware: Middleware from the GraphiQL end point.
+    :param graphql_middleware: Middleware for graphql-core-next.
+    :param subscription_expiry: The time to wait before abandoning an unused subscription.
+    :return: Returns the constructed controller.
+    """
+    controller = GraphQLController(schema, path_prefix, graphql_middleware, subscription_expiry)
 
     # Add the REST route
     app.http_router.add(
