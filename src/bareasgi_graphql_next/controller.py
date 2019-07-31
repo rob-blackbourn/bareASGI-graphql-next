@@ -91,8 +91,8 @@ class GraphQLController:
 
     # noinspection PyUnusedLocal
     async def handle_graphql(self, scope: Scope, info: Info, matches: RouteMatches, content: Content) -> HttpResponse:
+        """A request handler for graphql queries"""
 
-        # noinspection PyBroadException
         try:
             await self._reap_subscriptions()
 
@@ -104,6 +104,7 @@ class GraphQLController:
 
             parsed_query = graphql.parse(query)
 
+            # noinspection PyUnresolvedReferences
             if any(definition.operation is OperationType.SUBSCRIPTION for definition in parsed_query.definitions):
                 result = await graphql.subscribe(
                     schema=self.schema,
@@ -145,6 +146,7 @@ class GraphQLController:
                 ]
                 return response_code.CREATED, headers
 
+        # noinspection PyBroadException
         except:
             text = 'Internal server error'
             headers = [
@@ -153,6 +155,7 @@ class GraphQLController:
             ]
             return response_code.INTERNAL_SERVER_ERROR, headers, text_writer(text)
 
+    # noinspection PyUnusedLocal
     async def handle_sse(
             self,
             scope: Scope,
@@ -160,10 +163,14 @@ class GraphQLController:
             matches: RouteMatches,
             content: Content
     ) -> HttpResponse:
+        """Handled a server sent event style subscription"""
+
+        # The token for the subscription is given in the url.
         token = matches['token']
         subscription = self.sse_subscriptions[token]
         subscription.opened = True
 
+        # Make an async iterator for the subscription results.
         async def send_events():
             try:
                 async for val in cancellable_aiter(subscription.result, self.cancellation_event):
