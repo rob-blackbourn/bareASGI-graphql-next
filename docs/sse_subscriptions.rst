@@ -16,9 +16,10 @@ that can be used in the browser:
 
 .. code-block:: js
 
-    function fetchGraphQL(query, variables, operationName, onError, onSuccess) {
+    function fetchGraphQL(query, variables, operationName, signal, onError, onSuccess) {
       fetch('https://www.example.com/graphql', {
         method: 'POST',
+        signal,
         body: JSON.stringify({
           query,
           variables,
@@ -40,6 +41,15 @@ that can be used in the browser:
             // consume with an EventSource.
             var location = response.headers.get('location')
             eventSource = new EventSource(location)
+
+            // Handle cancellation with AbortController.signal.onabort
+            signal.onabort = function() {
+              if (eventSource.readyState !== 2) {
+                eventSource.close()
+              }
+            }
+
+            // Consume the messages.
             eventSource.onmessage = function(event) {
               onSuccess(JSON.parse(event.data))
             }
