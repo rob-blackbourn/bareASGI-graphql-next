@@ -1,3 +1,3 @@
-bareASGI>=3.0.1<4
-bareutils>=3.0.1<4
-graphql-core-next>=1<2
+bareASGI~=3.0
+bareutils~=3.0
+graphql-core-next~=1.0
