@@ -1,11 +1,14 @@
 import asyncio
 from cgi import parse_multipart
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 # noinspection PyPackageRequirements
 import graphql
 from graphql import OperationType, GraphQLSchema
+from graphql.subscription.map_async_iterator import MapAsyncIterator
 import io
 import json
-from typing import List, AsyncIterator, MutableMapping
+from typing import List, MutableMapping
 from urllib.parse import parse_qs
 import uuid
 from bareasgi import Application
@@ -19,14 +22,39 @@ from .websocket_handler import GraphQLWebSocketHandler
 from .utils import parse_header, cancellable_aiter
 
 
+@dataclass
+class Subscription:
+    result: MapAsyncIterator
+    created: datetime = field(default_factory=datetime.utcnow)
+    opened: bool = False
+
+
+def _is_http_2(scope: Scope) -> bool:
+    return scope['http_version'] in ('2', '2.0')
+
+
+def _get_host(scope: Scope) -> bytes:
+    if _is_http_2(scope):
+        return header.find(b':authority', scope['headers'])
+    else:
+        return header.find(b'host', scope['headers'])
+
+
 class GraphQLController:
 
-    def __init__(self, schema: GraphQLSchema, path_prefix: str = '', middleware=None):
+    def __init__(
+            self,
+            schema: GraphQLSchema,
+            path_prefix: str = '',
+            middleware=None,
+            subscription_expiry: float = 60
+    ) -> None:
         self.schema = schema
         self.path_prefix = path_prefix
         self.middleware = middleware
+        self.subscription_expiry = subscription_expiry
         self.ws_subscription_handler = GraphQLWebSocketHandler(schema)
-        self.sse_subscriptions: MutableMapping[str, AsyncIterator] = dict()
+        self.sse_subscriptions: MutableMapping[str, Subscription] = dict()
         self.cancellation_event = asyncio.Event()
 
     def shutdown(self) -> None:
@@ -66,6 +94,8 @@ class GraphQLController:
 
         # noinspection PyBroadException
         try:
+            await self._reap_subscriptions()
+
             query_document = await self._get_query_document(scope['headers'], content)
 
             query = query_document['query']
@@ -92,7 +122,7 @@ class GraphQLController:
                     middleware=self.middleware
                 )
 
-            if not isinstance(result, AsyncIterator):
+            if not isinstance(result, MapAsyncIterator):
                 response = {'data': result.data}
                 if result.errors:
                     response['errors'] = [error.formatted for error in result.errors]
@@ -106,8 +136,8 @@ class GraphQLController:
                 return 200, headers, text_writer(text)
             else:
                 token = str(uuid.uuid4())
-                self.sse_subscriptions[token] = result
-                host = header.find(b'host', scope['headers']).decode('utf-8')
+                self.sse_subscriptions[token] = Subscription(result)
+                host = _get_host(scope).decode('utf-8')
                 location = f'{scope["scheme"]}://{host}{self.path_prefix}/sse-subscription/{token}'
                 headers = [
                     (b'access-control-expose-headers', b'location'),
@@ -131,16 +161,17 @@ class GraphQLController:
             content: Content
     ) -> HttpResponse:
         token = matches['token']
-        result = self.sse_subscriptions[token]
+        subscription = self.sse_subscriptions[token]
+        subscription.opened = True
 
         async def send_events():
             try:
-                async for val in cancellable_aiter(result, self.cancellation_event):
+                async for val in cancellable_aiter(subscription.result, self.cancellation_event):
                     text = json.dumps(val)
                     yield f'data: {text}\n\n\n'.encode('utf-8')
 
             except asyncio.CancelledError:
-                pass
+                del self.sse_subscriptions[token]
 
         headers = [
             (b'cache-control', b'no-cache'),
@@ -149,6 +180,18 @@ class GraphQLController:
         ]
 
         return response_code.OK, headers, send_events()
+
+    async def _reap_subscriptions(self) -> None:
+        """Remove subscriptions that were never opened"""
+        expiry = datetime.utcnow() - timedelta(seconds=self.subscription_expiry)
+        tokens = {
+            token: subscription.result
+            for token, subscription in self.sse_subscriptions.items()
+            if not subscription.opened and subscription.created < expiry
+        }
+        for token, result in tokens.items():
+            await result.aclose()
+            del self.sse_subscriptions[token]
 
 
 def add_graphql_next(
