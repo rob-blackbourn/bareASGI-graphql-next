@@ -44,10 +44,9 @@ that can be used in the browser:
 
 .. code-block:: js
 
-    function fetchGraphQL(query, variables, operationName, signal, onError, onSuccess) {
+    function fetchGraphQL(query, variables, operationName, onError, onSuccess) {
       fetch('https://www.example.com/graphql', {
         method: 'POST',
-        signal,
         body: JSON.stringify({
           query,
           variables,
@@ -65,17 +64,11 @@ that can be used in the browser:
           } else if (response.status == 201) {
 
             // This is a subscription response. An endpoint is
-            // returned in the "Location" header which we can
-            // consume with an EventSource.
+            // returned in the "location" header.
             var location = response.headers.get('location')
-            eventSource = new EventSource(location)
 
-            // Handle cancellation with AbortController.signal.onabort
-            signal.onabort = function() {
-              if (eventSource.readyState !== 2) {
-                eventSource.close()
-              }
-            }
+            // We can consume the events with an EventSource.
+            eventSource = new EventSource(location)
 
             // Consume the messages.
             eventSource.onmessage = function(event) {
