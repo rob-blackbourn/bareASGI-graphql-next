@@ -22,8 +22,8 @@ tested with `@jetblack/graphql-client <https://www.npmjs.com/package/@jetblack/g
 of which is discussed `here <https://medium.com/@rob.blackbourn/writing-a-graphql-websocket-subscriber-in-javascript-4451abb9cd60>`_,
 and also by the inbuilt `GraphiQL IDE <https://github.com/graphql/graphiql>`_.
 
-Server Sent Event Subscriptions
--------------------------------
+Server Sent Events
+------------------
 
 As well as the more popular :doc:`WebSocket Subscription </ws_subscriptions>`, a mechanism using
 `server sent events <https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events>`_
