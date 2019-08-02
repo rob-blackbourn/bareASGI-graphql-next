@@ -1,4 +1,5 @@
 import asyncio
+from base64 import b64encode
 from cgi import parse_multipart
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -175,8 +176,9 @@ class GraphQLController:
             try:
                 async for val in cancellable_aiter(subscription.result, self.cancellation_event):
                     text = json.dumps(val)
-                    yield f'data: {text}\n\n\n'.encode('utf-8')
-
+                    buf = b64encode(text.encode('utf-8'))
+                    message = b'data: ' + buf + b'\n\n\n'
+                    yield message
             except asyncio.CancelledError:
                 del self.sse_subscriptions[token]
 

@@ -44,9 +44,25 @@ that can be used in the browser:
 
 .. code-block:: js
 
-    function fetchGraphQL(query, variables, operationName, onError, onSuccess) {
-      fetch('https://www.example.com/graphql', {
+    export class FetchError extends Error {
+      constructor(response, ...params) {
+        super(...params)
+
+        if (Error.captureStackTrace) {
+          Error.captureStackTrace(this, FetchError)
+        }
+
+        this.name = 'FetchError'
+        this.response = response
+      }
+    }
+
+    export function graphQLClient(url, query, variables, operationName, onNext, onError, onComplete) {
+      const abortController = new AbortController()
+
+      fetch(url, {
         method: 'POST',
+        signal: abortController.signal,
         body: JSON.stringify({
           query,
           variables,
@@ -54,30 +70,43 @@ that can be used in the browser:
         })
       })
         .then(response => {
-          if (response.status == 200) {
-
-            // This is a query result, so just show the data.
+          if (response.status === 200) {
+            // The response is from a query or mutation.
             response.json()
-              .then(data => onSuccess(data))
+              .then(json => {
+                onNext(json)
+                onComplete()
+              })
               .catch(error => onError(error))
-
-          } else if (response.status == 201) {
-
-            // This is a subscription response. An endpoint is
-            // returned in the "location" header.
-            var location = response.headers.get('location')
-
-            // We can consume the events with an EventSource.
-            eventSource = new EventSource(location)
-
-            // Consume the messages.
-            eventSource.onmessage = function(event) {
-              onSuccess(JSON.parse(event.data))
+          } else if (response.status === 201) {
+            // The response is from a subscription.
+            const location = response.headers.get('location')
+            const eventSource = new EventSource(location)
+            eventSource.onmessage = event => {
+              console.log('EventSource:onmessage', event)
+              const text = atob(event.data)
+              const data = JSON.parse(text)
+              onNext(data)
             }
-
+            eventSource.onerror = error => {
+              console.log('EventSource:onerror', error)
+              onError(error)
+            }
+            abortController.signal.onabort = () => {
+              console.log('AbortController: onabort')
+              if (eventSource.readyState !== 2) {
+                eventSource.close()
+              }
+            }
           } else {
-            onError(new Error("Unhandled response"))
+            onError(new FetchError(response, 'Failed to execute GraphQL'))
           }
         })
         .catch(error => onError(error))
 
+      // Return an unsubscribe function.
+      return () => {
+        console.log('unsubscribing')
+        abortController.abort()
+      }
+    }
