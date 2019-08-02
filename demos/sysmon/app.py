@@ -7,6 +7,7 @@ from bareasgi_graphql_next import add_graphql_next, GraphQLController
 from baretypes import Scope, Info, RouteMatches, Content, HttpResponse
 from bareutils import text_writer
 import bareutils.header as header
+from bareasgi_graphql_next.controller import _get_host
 from .system_monitor import SystemMonitor
 from .schema import schema
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 async def start_service(scope: Scope, info: Info, request) -> None:
-    system_monitor = SystemMonitor(1)
+    system_monitor = SystemMonitor(30)
 
     info['system_monitor'] = system_monitor
     info['system_monitor_task'] = asyncio.create_task(system_monitor.startup())
@@ -42,13 +43,8 @@ async def graphql_handler(
         matches: RouteMatches,
         content: Content
 ) -> HttpResponse:
-    if scope['http_version'] in ('2', '2.0'):
-        authority = header.find(
-            b':authority', scope['headers']).decode('ascii')
-    else:
-        host, port = scope['server']
-        authority = f'{host}:{port}'
-    sse_url = f"{scope['scheme']}://{authority}/test/graphql"
+    host = _get_host(scope).decode()
+    sse_url = f"{scope['scheme']}://{host}/test/graphql"
 
     html = """
 <!DOCTYPE html>
@@ -70,10 +66,75 @@ async def graphql_handler(
     <h4>Example Query</h4>
 
     <p>query {{ latest {{ timestamp cpu {{ percent }} }} }}</p>
+    <pre>
+query {{
+  latest {{
+    timestamp
+    cpu {{
+      count
+      percent
+      cores {{
+        percent
+        times {{
+          user
+          nice
+          system
+          idle
+          iowait
+          irq
+          softirq
+          steal
+          guest
+          guestNice
+        }}
+      }}
+      stats {{
+        ctxSwitches
+        interrupts
+        softInterrupts
+        syscalls
+      }}
+    }}
+  }}
+}}
+    </pre>
     
     <h4>Example Subscription</h4>
     
     <p>subscription {{ system {{ timestamp cpu {{ percent }} }} }}</p>
+    
+    <pre>
+subscription {{
+  system {{
+    timestamp
+    cpu {{
+      count
+      percent
+      cores {{
+        percent
+        times {{
+          user
+          nice
+          system
+          idle
+          iowait
+          irq
+          softirq
+          steal
+          guest
+          guestNice
+        }}
+      }}
+      stats {{
+        ctxSwitches
+        interrupts
+        softInterrupts
+        syscalls
+      }}
+    }}
+  }}
+}}    
+    </pre>
 
   <script language="javascript" type="text/javascript">
 

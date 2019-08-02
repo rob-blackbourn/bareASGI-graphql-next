@@ -9,6 +9,7 @@ from graphql import OperationType, GraphQLSchema
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 import io
 import json
+import logging
 from typing import List, MutableMapping, Optional
 from urllib.parse import parse_qs
 import uuid
@@ -21,6 +22,8 @@ from bareasgi.middleware import mw
 from .template import make_template
 from .websocket_handler import GraphQLWebSocketHandler
 from .utils import parse_header, cancellable_aiter
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -39,6 +42,17 @@ def _get_host(scope: Scope) -> bytes:
         return header.find(b':authority', scope['headers'])
     else:
         return header.find(b'host', scope['headers'])
+
+
+def _is_subscription(definition: graphql.DefinitionNode) -> bool:
+    return isinstance(
+        definition,
+        graphql.OperationDefinitionNode
+    ) and definition.operation is OperationType.SUBSCRIPTION
+
+
+def _has_subscription(document: graphql.DocumentNode) -> bool:
+    return any(_is_subscription(definition) for definition in document.definitions)
 
 
 class GraphQLController:
@@ -63,8 +77,8 @@ class GraphQLController:
 
     # noinspection PyUnusedLocal
     async def view_graphiql(self, scope: Scope, info: Info, matches: RouteMatches, content: Content) -> HttpResponse:
-        host, port = scope['server']
-        body = make_template(f'{host}:{port}', self.path_prefix + '/graphql', self.path_prefix + '/subscriptions')
+        host = _get_host(scope).decode('ascii')
+        body = make_template(f'{host}', self.path_prefix + '/graphql', self.path_prefix + '/subscriptions')
         headers = [
             (b'content-type', b'text/html'),
             (b'content-length', str(len(body)).encode())
@@ -97,19 +111,19 @@ class GraphQLController:
         try:
             await self._reap_subscriptions()
 
-            query_document = await self._get_query_document(scope['headers'], content)
+            body = await self._get_query_document(scope['headers'], content)
 
-            query = query_document['query']
-            variable_values = query_document.get('variables')
-            operation_name = query_document.get('operationName')
+            query_text = body['query']
+            variable_values = body.get('variables')
+            operation_name = body.get('operationName')
 
-            parsed_query = graphql.parse(query)
+            query_document = graphql.parse(query_text)
 
             # noinspection PyUnresolvedReferences
-            if any(definition.operation is OperationType.SUBSCRIPTION for definition in parsed_query.definitions):
+            if _has_subscription(query_document):
                 result = await graphql.subscribe(
                     schema=self.schema,
-                    document=parsed_query,
+                    document=query_document,
                     variable_values=variable_values,
                     operation_name=operation_name,
                     context_value=info
@@ -117,7 +131,7 @@ class GraphQLController:
             else:
                 result = await graphql.graphql(
                     schema=self.schema,
-                    source=graphql.Source(query),  # source=query,
+                    source=graphql.Source(query_text),  # source=query,
                     variable_values=variable_values,
                     operation_name=operation_name,
                     context_value=info,
@@ -174,10 +188,17 @@ class GraphQLController:
         # Make an async iterator for the subscription results.
         async def send_events():
             try:
-                async for val in cancellable_aiter(subscription.result, self.cancellation_event):
-                    text = json.dumps(val)
-                    buf = b64encode(text.encode('utf-8'))
-                    message = b'data: ' + buf + b'\n\n\n'
+                async for val in cancellable_aiter(subscription.result, self.cancellation_event, timeout=10):
+                    logger.debug('SSE subscription: %s', val)
+                    if val is None:
+                        message = b':\n\n'
+                    else:
+                        text = json.dumps(val)
+                        buf = text.encode('utf-8')
+                        data = b64encode(buf)
+                        message = b'data: ' + buf + b'\n\n\n'
+
+                    logger.debug('SSE message: %s', val)
                     yield message
             except asyncio.CancelledError:
                 del self.sse_subscriptions[token]

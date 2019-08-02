@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import Event
-from typing import Tuple, Mapping, MutableMapping, Iterator, AsyncIterator
+from typing import Tuple, Mapping, MutableMapping, Iterator, AsyncIterator, Optional
 
 
 def _parseparam(s: bytes) -> Iterator[bytes]:
@@ -41,7 +41,8 @@ async def cancellable_aiter(
         async_iterator: AsyncIterator,
         cancellation_event: Event,
         *,
-        cancel_pending: bool = True
+        cancel_pending: bool = True,
+        timeout: Optional[float] = None
 ) -> AsyncIterator:
     """Create a cancellable async iterator.
 
@@ -55,16 +56,20 @@ async def cancellable_aiter(
     while not cancellation_event.is_set():
         done, pending = await asyncio.wait(
             [cancellation_task, result_iter.__anext__()],
+            timeout=timeout,
             return_when=asyncio.FIRST_COMPLETED
         )
-        for done_task in done:
-            if done_task == cancellation_task:
-                for pending_task in pending:
-                    if cancel_pending:
-                        pending_task.cancel()
-                    else:
-                        await pending_task
-                        yield pending_task.result()
-                break
-            else:
-                yield done_task.result()
+        if not done and timeout is not None:
+            yield None
+        else:
+            for done_task in done:
+                if done_task == cancellation_task:
+                    for pending_task in pending:
+                        if cancel_pending:
+                            pending_task.cancel()
+                        else:
+                            await pending_task
+                            yield pending_task.result()
+                    break
+                else:
+                    yield done_task.result()

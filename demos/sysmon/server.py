@@ -75,8 +75,8 @@ def start_http_server(
 def start_server() -> None:
     hostname = socket.gethostname()
 
-    http_server = 'hypercorn'  # or 'uvicorn'
-    host = '127.0.0.1'
+    http_server = 'uvicorn'  # or 'uvicorn'
+    host = '0.0.0.0'
     port = 9009
     ssl_enabled = True
     keyfile = os.path.expanduser(f'~/.keys/{hostname}.key')
