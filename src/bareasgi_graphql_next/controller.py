@@ -194,15 +194,17 @@ class GraphQLController:
                 async for val in cancellable_aiter(subscription.result, self.cancellation_event, timeout=10):
 
                     if val is None:
-                        message = b':\n\n'
+                        message = f'event: ping\ndata: {datetime.utcnow()}\n\n'.encode('utf-8')
                     else:
                         text = json.dumps(val)
                         buf = text.encode('utf-8')
                         data = b64encode(buf)
-                        message = b'data: ' + buf + b'\n\n\n'
+                        message = f'event: message\ndata: {text}\n\n'.encode('utf-8')
 
                     logger.debug('SSE sending: %s', message)
                     yield message
+                    # Give the ASGI server a nudge.
+                    yield ':\n\n'.encode('utf-8')
             except asyncio.CancelledError:
                 logger.debug("SSE task cancelled for token '%s'", token)
 
