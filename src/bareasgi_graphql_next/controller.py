@@ -182,36 +182,56 @@ class GraphQLController:
         # The token for the subscription is given in the url.
         token = matches['token']
         subscription = self.sse_subscriptions[token]
-        # del self.sse_subscriptions[token]
+        del self.sse_subscriptions[token]
 
         logger.debug('SSE received subscription request: token="%s", htto_version=%s', token, scope['http_version'])
 
         # Make an async iterator for the subscription results.
         async def send_events():
             logger.debug('SSE sending events: token="%s"', token)
-            try:
-                async for val in cancellable_aiter(subscription.result, self.cancellation_event, timeout=10):
-                    logger.debug('SSE received event: token="%s", value=%s', token, val)
-                    if val is None:
+
+            cancellation_task = asyncio.create_task(self.cancellation_event.wait())
+            sleep_task = asyncio.create_task(asyncio.sleep(10))
+            pending = {
+                cancellation_task,
+                sleep_task,
+                asyncio.create_task(subscription.result.__anext__())
+            }
+            while not self.cancellation_event.is_set():
+                try:
+                    done, pending = await asyncio.wait(
+                        pending,
+                        return_when=asyncio.FIRST_COMPLETED
+                    )
+                except asyncio.CancelledError:
+                    for pending_task in pending:
+                        pending_task.cancel()
+                    try:
+                        await subscription.result.aclose()
+                    except StopAsyncIteration:
+                        pass
+                    return
+
+                for done_task in done:
+                    if done_task == cancellation_task:
+                        for pending_task in pending:
+                            pending_task.cancel()
+                        return
+                    elif done_task == sleep_task:
                         message = b':\n\n'
+                        logger.debug('SSE sending: %s', message)
+                        yield message
+                        sleep_task = asyncio.create_task(asyncio.sleep(10))
+                        pending.add(sleep_task)
                     else:
+                        val = done_task.result()
                         text = json.dumps(val)
                         buf = text.encode('utf-8')
                         data = b64encode(buf)
                         message = b'data: ' + buf + b'\n\n\n'
-
-                    logger.debug('SSE message: %s', val)
-                    yield message
-            except asyncio.CancelledError:
-                logger.debug('SSE cancelling subscription for token "%s"', token)
-                # try:
-                #     await subscription.result.aclose()
-                # except StopAsyncIteration:
-                #     logger.exception('Stopping')
-                # except Exception as error:
-                #     logger.exception('Unexpected')
-            except Exception as error:
-                logger.exception('Unexpected')
+                        logger.debug('SSE sending: %s', message)
+                        yield message
+                        pending.add(asyncio.create_task(subscription.result.__anext__()))
 
             logger.debug('SSE Stopped subscription for token "%s"', token)
 
