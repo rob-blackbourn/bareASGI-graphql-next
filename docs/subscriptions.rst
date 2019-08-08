@@ -84,8 +84,7 @@ that can be used in the browser:
             const eventSource = new EventSource(location)
             eventSource.onmessage = event => {
               console.log('EventSource:onmessage', event)
-              const text = atob(event.data)
-              const data = JSON.parse(text)
+              const data = JSON.parse(event.data)
               onNext(data)
             }
             eventSource.onerror = error => {

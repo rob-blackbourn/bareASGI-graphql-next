@@ -1,5 +1,4 @@
 import asyncio
-from base64 import b64encode
 from cgi import parse_multipart
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -201,10 +200,7 @@ class GraphQLController:
                     if val is None:
                         message = f'event: ping\ndata: {datetime.utcnow()}\n\n'.encode('utf-8')
                     else:
-                        text = json.dumps(val)
-                        buf = text.encode('utf-8')
-                        data = b64encode(buf)
-                        message = f'event: message\ndata: {text}\n\n'.encode('utf-8')
+                        message = f'event: message\ndata: {json.dumps(val)}\n\n'.encode('utf-8')
 
                     logger.debug('SSE sending: %s', message)
                     yield message
