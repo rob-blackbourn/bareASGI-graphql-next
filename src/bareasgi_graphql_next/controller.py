@@ -30,7 +30,6 @@ logger = logging.getLogger(__name__)
 class Subscription:
     result: MapAsyncIterator
     created: datetime = field(default_factory=datetime.utcnow)
-    opened: bool = False
 
 
 def _is_http_2(scope: Scope) -> bool:
@@ -183,13 +182,16 @@ class GraphQLController:
         # The token for the subscription is given in the url.
         token = matches['token']
         subscription = self.sse_subscriptions[token]
-        subscription.opened = True
+        # del self.sse_subscriptions[token]
+
+        logger.debug('SSE received subscription request: token="%s", htto_version=%s', token, scope['http_version'])
 
         # Make an async iterator for the subscription results.
         async def send_events():
+            logger.debug('SSE sending events: token="%s"', token)
             try:
                 async for val in cancellable_aiter(subscription.result, self.cancellation_event, timeout=10):
-                    logger.debug('SSE subscription: %s', val)
+                    logger.debug('SSE received event: token="%s", value=%s', token, val)
                     if val is None:
                         message = b':\n\n'
                     else:
@@ -201,7 +203,17 @@ class GraphQLController:
                     logger.debug('SSE message: %s', val)
                     yield message
             except asyncio.CancelledError:
-                del self.sse_subscriptions[token]
+                logger.debug('SSE cancelling subscription for token "%s"', token)
+                # try:
+                #     await subscription.result.aclose()
+                # except StopAsyncIteration:
+                #     logger.exception('Stopping')
+                # except Exception as error:
+                #     logger.exception('Unexpected')
+            except Exception as error:
+                logger.exception('Unexpected')
+
+            logger.debug('SSE Stopped subscription for token "%s"', token)
 
         headers = [
             (b'cache-control', b'no-cache'),
@@ -217,7 +229,7 @@ class GraphQLController:
         tokens = {
             token: subscription.result
             for token, subscription in self.sse_subscriptions.items()
-            if not subscription.opened and subscription.created < expiry
+            if subscription.created < expiry
         }
         for token, result in tokens.items():
             await result.aclose()

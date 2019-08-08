@@ -2,6 +2,8 @@ import asyncio
 from asyncio import Event
 from typing import Tuple, Mapping, MutableMapping, Iterator, AsyncIterator, Optional
 
+from graphql.subscription.map_async_iterator import MapAsyncIterator
+
 
 def _parseparam(s: bytes) -> Iterator[bytes]:
     while s[:1] == b';':
@@ -38,7 +40,7 @@ def parse_header(line: bytes) -> Tuple[bytes, Mapping[bytes, bytes]]:
 
 
 async def cancellable_aiter(
-        async_iterator: AsyncIterator,
+        async_iterator: MapAsyncIterator,
         cancellation_event: Event,
         *,
         cancel_pending: bool = True,
@@ -54,11 +56,18 @@ async def cancellable_aiter(
     cancellation_task = asyncio.create_task(cancellation_event.wait())
     result_iter = async_iterator.__aiter__()
     while not cancellation_event.is_set():
-        done, pending = await asyncio.wait(
-            [cancellation_task, result_iter.__anext__()],
-            timeout=timeout,
-            return_when=asyncio.FIRST_COMPLETED
-        )
+        anext_task = asyncio.create_task(result_iter.__anext__())
+        try:
+            done, pending = await asyncio.wait(
+                [cancellation_task, anext_task],
+                timeout=timeout,
+                return_when=asyncio.FIRST_COMPLETED
+            )
+        except asyncio.CancelledError:
+            cancellation_task.cancel()
+            anext_task.cancel()
+            raise
+
         if not done and timeout is not None:
             yield None
         else:
