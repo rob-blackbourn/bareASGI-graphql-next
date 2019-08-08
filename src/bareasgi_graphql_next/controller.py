@@ -10,7 +10,7 @@ from graphql.subscription.map_async_iterator import MapAsyncIterator
 import io
 import json
 import logging
-from typing import List, MutableMapping, Optional
+from typing import List, MutableMapping
 from urllib.parse import parse_qs
 import uuid
 from bareasgi import Application
@@ -61,12 +61,14 @@ class GraphQLController:
             schema: GraphQLSchema,
             path_prefix: str = '',
             middleware=None,
-            subscription_expiry: float = 60
+            subscription_expiry: float = 60,
+            ping_interval: float = 10
     ) -> None:
         self.schema = schema
         self.path_prefix = path_prefix
         self.middleware = middleware
         self.subscription_expiry = subscription_expiry
+        self.ping_interval = ping_interval
         self.ws_subscription_handler = GraphQLWebSocketHandler(schema)
         self.sse_subscriptions: MutableMapping[str, Subscription] = dict()
         self.cancellation_event = asyncio.Event()
@@ -191,8 +193,11 @@ class GraphQLController:
             logger.debug('SSE sending events: token="%s"', token)
 
             try:
-                async for val in cancellable_aiter(subscription.result, self.cancellation_event, timeout=10):
-
+                async for val in cancellable_aiter(
+                        subscription.result,
+                        self.cancellation_event,
+                        timeout=self.ping_interval
+                ):
                     if val is None:
                         message = f'event: ping\ndata: {datetime.utcnow()}\n\n'.encode('utf-8')
                     else:
@@ -238,7 +243,8 @@ def add_graphql_next(
         rest_middleware=None,
         view_middleware=None,
         graphql_middleware=None,
-        subscription_expiry: Optional[float] = 60
+        subscription_expiry: float = 60,
+        ping_interval: float = 10
 ) -> GraphQLController:
     """Add graphql support to an bareASGI application.
 
@@ -251,7 +257,7 @@ def add_graphql_next(
     :param subscription_expiry: The time to wait before abandoning an unused subscription.
     :return: Returns the constructed controller.
     """
-    controller = GraphQLController(schema, path_prefix, graphql_middleware, subscription_expiry)
+    controller = GraphQLController(schema, path_prefix, graphql_middleware, subscription_expiry, ping_interval)
 
     # Add the REST route
     app.http_router.add(
