@@ -14,6 +14,7 @@ async def subscribe_to_systems(root, info: GraphQLResolveInfo, *args, **kwargs):
     try:
         while True:
             data = await queue.get()
+            logger.debug("Subscriber received data: %s", data)
             yield data
     finally:
         logger.debug('Unubscribing to system data')
@@ -21,4 +22,5 @@ async def subscribe_to_systems(root, info: GraphQLResolveInfo, *args, **kwargs):
 
 
 def resolve_subscriptions(root, info: GraphQLResolveInfo, *args, **kwargs):
+    logger.debug("Resolver resolved data: %s", root)
     return root

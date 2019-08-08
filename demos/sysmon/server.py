@@ -26,7 +26,8 @@ def start_uvicorn_server(
 
     kwargs = {
         'host': host,
-        'port': port
+        'port': port,
+        # 'loop': 'asyncio'
     }
 
     if ssl_enabled:
@@ -75,7 +76,7 @@ def start_http_server(
 def start_server() -> None:
     hostname = socket.gethostname()
 
-    http_server = 'uvicorn'  # or 'uvicorn'
+    http_server = 'hypercorn'  # 'hypercorn' or 'uvicorn'
     host = '0.0.0.0'
     port = 9009
     ssl_enabled = True

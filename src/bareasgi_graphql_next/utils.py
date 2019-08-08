@@ -53,32 +53,48 @@ async def cancellable_aiter(
     :param cancel_pending: If True cancel pending tasks, otherwaise wait them.
     :return: The wrapped async iterator
     """
-    cancellation_task = asyncio.create_task(cancellation_event.wait())
     result_iter = async_iterator.__aiter__()
+    cancellation_task = asyncio.create_task(cancellation_event.wait())
+    pending = {
+        cancellation_task,
+        asyncio.create_task(result_iter.__anext__())
+    }
+
+    if timeout is None:
+        sleep_task = None
+    else:
+        sleep_task = asyncio.create_task(asyncio.sleep(timeout))
+        pending.add(sleep_task)
+
     while not cancellation_event.is_set():
-        anext_task = asyncio.create_task(result_iter.__anext__())
         try:
             done, pending = await asyncio.wait(
-                [cancellation_task, anext_task],
-                timeout=timeout,
+                pending,
                 return_when=asyncio.FIRST_COMPLETED
             )
         except asyncio.CancelledError:
-            cancellation_task.cancel()
-            anext_task.cancel()
+            for pending_task in pending:
+                pending_task.cancel()
             raise
 
-        if not done and timeout is not None:
-            yield None
+        for done_task in done:
+            if done_task == cancellation_task:
+                for pending_task in pending:
+                    if cancel_pending:
+                        pending_task.cancel()
+                    else:
+                        await pending_task
+                        yield pending_task.result()
+                break
+            elif done_task == sleep_task:
+                yield None
+            else:
+                yield done_task.result()
+                pending.add(asyncio.create_task(result_iter.__anext__()))
         else:
-            for done_task in done:
-                if done_task == cancellation_task:
-                    for pending_task in pending:
-                        if cancel_pending:
-                            pending_task.cancel()
-                        else:
-                            await pending_task
-                            yield pending_task.result()
-                    break
-                else:
-                    yield done_task.result()
+            if timeout is not None:
+                if sleep_task in pending:
+                    sleep_task.cancel()
+                    pending.discard(sleep_task)
+                sleep_task = asyncio.create_task(asyncio.sleep(timeout))
+                pending.add(sleep_task)
