@@ -1,3 +1,7 @@
+"""
+Server
+"""
+
 import asyncio
 from hypercorn.asyncio import serve
 from hypercorn.config import Config
@@ -12,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 def initialise_logging() -> None:
+
+    """Initialise logging"""
     logging.basicConfig(level=logging.DEBUG)
 
 
@@ -22,6 +28,7 @@ def start_uvicorn_server(
         keyfile: Optional[str] = None,
         certfile: Optional[str] = None
 ) -> None:
+    """Start the uvicorn server"""
     app = make_application()
 
     kwargs = {
@@ -44,6 +51,7 @@ def start_hypercorn_server(
         keyfile: Optional[str] = None,
         certfile: Optional[str] = None
 ) -> None:
+    """Start the hypercorn server"""
     app = make_application()
 
     web_config = Config()
@@ -64,6 +72,7 @@ def start_http_server(
         keyfile: Optional[str] = None,
         certfile: Optional[str] = None
 ) -> None:
+    """Start the http server"""
     if http_server == "uvicorn":
         start_uvicorn_server(host, port, ssl_enabled, keyfile, certfile)
     elif http_server == "hypercorn":
@@ -74,9 +83,10 @@ def start_http_server(
 
 
 def start_server() -> None:
+    """Start the server"""
     hostname = socket.gethostname()
 
-    http_server = 'hypercorn'  # 'hypercorn' or 'uvicorn'
+    http_server = 'uvicorn'  # 'hypercorn' or 'uvicorn'
     host = '0.0.0.0'
     port = 9009
     ssl_enabled = True

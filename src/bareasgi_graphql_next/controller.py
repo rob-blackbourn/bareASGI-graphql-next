@@ -1,21 +1,35 @@
+"""
+GraphQL controller
+"""
+
 import asyncio
-from cgi import parse_multipart
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-# noinspection PyPackageRequirements
-import graphql
-from graphql import OperationType, GraphQLSchema
-from graphql.subscription.map_async_iterator import MapAsyncIterator
 import io
 import json
 import logging
-from typing import List, MutableMapping
+
+from base64 import b64encode, b64decode
+from cgi import parse_multipart
+from datetime import datetime
+from typing import List, Dict, Any, Optional
 from urllib.parse import parse_qs
-import uuid
-from bareasgi import Application
+
+import graphql
 import bareutils.header as header
+
+from graphql import OperationType, GraphQLSchema
+from bareasgi import Application
 from bareutils import text_reader, text_writer, response_code
-from baretypes import (Header, HttpResponse, Scope, Info, RouteMatches, Content, WebSocket)
+from baretypes import (
+    Header,
+    HttpResponse,
+    Scope,
+    Info,
+    RouteMatches,
+    Content,
+    WebSocket,
+    HttpRequestCallback,
+    HttpMiddlewareCallback
+)
 from bareasgi.middleware import mw
 
 from .template import make_template
@@ -23,12 +37,6 @@ from .websocket_handler import GraphQLWebSocketHandler
 from .utils import parse_header, cancellable_aiter
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class Subscription:
-    result: MapAsyncIterator
-    created: datetime = field(default_factory=datetime.utcnow)
 
 
 def _is_http_2(scope: Scope) -> bool:
@@ -54,6 +62,7 @@ def _has_subscription(document: graphql.DocumentNode) -> bool:
 
 
 class GraphQLController:
+    """GraphQL Controller"""
 
     def __init__(
             self,
@@ -69,28 +78,49 @@ class GraphQLController:
         self.subscription_expiry = subscription_expiry
         self.ping_interval = ping_interval
         self.ws_subscription_handler = GraphQLWebSocketHandler(schema)
-        self.sse_subscriptions: MutableMapping[str, Subscription] = dict()
         self.cancellation_event = asyncio.Event()
 
     def shutdown(self) -> None:
+        """Shutdown the service"""
         self.cancellation_event.set()
 
-    # noinspection PyUnusedLocal
-    async def view_graphiql(self, scope: Scope, info: Info, matches: RouteMatches, content: Content) -> HttpResponse:
+    # pylint: disable=unused-argument
+    async def view_graphiql(
+            self,
+            scope: Scope,
+            info: Info,
+            matches: RouteMatches,
+            content: Content
+    ) -> HttpResponse:
+        """Render the Graphiql view"""
+
         host = _get_host(scope).decode('ascii')
-        body = make_template(f'{host}', self.path_prefix + '/graphql', self.path_prefix + '/subscriptions')
+        body = make_template(
+            host,
+            self.path_prefix + '/graphql',
+            self.path_prefix + '/subscriptions'
+        )
         headers = [
             (b'content-type', b'text/html'),
             (b'content-length', str(len(body)).encode())
         ]
         return response_code.OK, headers, text_writer(body)
 
-    async def handle_subscription(self, scope: Scope, info: Info, matches: RouteMatches, web_socket: WebSocket) -> None:
+    async def handle_subscription(
+            self,
+            scope: Scope,
+            info: Info,
+            matches: RouteMatches,
+            web_socket: WebSocket
+    ) -> None:
+        """Handle a websocket subscription"""
         await self.ws_subscription_handler(scope, info, matches, web_socket)
 
     @classmethod
     async def _get_query_document(cls, headers: List[Header], content: Content):
         content_type = next((v for k, v in headers if k == b'content-type'), None)
+        if not isinstance(content_type, bytes):
+            raise TypeError('Expected content-type header')
         content_type, parameters = parse_header(content_type)
 
         if content_type == b'application/graphql':
@@ -100,17 +130,24 @@ class GraphQLController:
         elif content_type == b'application/x-www-form-urlencoded':
             return parse_qs(await text_reader(content))
         elif content_type == b'multipart/form-data':
-            return parse_multipart(io.StringIO(await text_reader(content)), parameters[b"boundary"])
+            return parse_multipart(
+                io.StringIO(await text_reader(content)),
+                parameters[b"boundary"]
+            )
         else:
             raise RuntimeError('Content type not supported')
 
     # noinspection PyUnusedLocal
-    async def handle_graphql(self, scope: Scope, info: Info, matches: RouteMatches, content: Content) -> HttpResponse:
+    async def handle_graphql(
+            self,
+            scope: Scope,
+            info: Info,
+            matches: RouteMatches,
+            content: Content
+    ) -> HttpResponse:
         """A request handler for graphql queries"""
 
         try:
-            await self._reap_subscriptions()
-
             body = await self._get_query_document(scope['headers'], content)
 
             query_text = body['query']
@@ -121,47 +158,40 @@ class GraphQLController:
 
             # noinspection PyUnresolvedReferences
             if _has_subscription(query_document):
-                result = await graphql.subscribe(
-                    schema=self.schema,
-                    document=query_document,
-                    variable_values=variable_values,
-                    operation_name=operation_name,
-                    context_value=info
-                )
-            else:
-                result = await graphql.graphql(
-                    schema=self.schema,
-                    source=graphql.Source(query_text),  # source=query,
-                    variable_values=variable_values,
-                    operation_name=operation_name,
-                    context_value=info,
-                    middleware=self.middleware
-                )
-
-            if not isinstance(result, MapAsyncIterator):
-                response = {'data': result.data}
-                if result.errors:
-                    response['errors'] = [error.formatted for error in result.errors]
-
-                text = json.dumps(response)
-                headers = [
-                    (b'content-type', b'application/json'),
-                    (b'content-length', str(len(text)).encode())
-                ]
-
-                return 200, headers, text_writer(text)
-            else:
-                token = str(uuid.uuid4())
-                self.sse_subscriptions[token] = Subscription(result)
+                text = json.dumps(body)
+                buf = text.encode('utf-8')
+                buf_encoded = b64encode(buf)
+                graphql_qs = buf_encoded.decode('utf-8')
                 host = _get_host(scope).decode('utf-8')
-                location = f'{scope["scheme"]}://{host}{self.path_prefix}/sse-subscription/{token}'
+                location = f'{scope["scheme"]}://{host}{self.path_prefix}/sse-subscription?graphql={graphql_qs}'
                 headers = [
                     (b'access-control-expose-headers', b'location'),
                     (b'location', location.encode('ascii'))
                 ]
                 return response_code.CREATED, headers
 
-        # noinspection PyBroadException
+            result = await graphql.graphql(
+                schema=self.schema,
+                source=graphql.Source(query_text),  # source=query,
+                variable_values=variable_values,
+                operation_name=operation_name,
+                context_value=info,
+                middleware=self.middleware
+            )
+
+            response: Dict[str, Any] = {'data': result.data}
+            if result.errors:
+                response['errors'] = [error.formatted for error in result.errors]
+
+            text = json.dumps(response)
+            headers = [
+                (b'content-type', b'application/json'),
+                (b'content-length', str(len(text)).encode())
+            ]
+
+            return 200, headers, text_writer(text)
+
+        # pylint: disable=bare-except
         except:
             text = 'Internal server error'
             headers = [
@@ -170,7 +200,6 @@ class GraphQLController:
             ]
             return response_code.INTERNAL_SERVER_ERROR, headers, text_writer(text)
 
-    # noinspection PyUnusedLocal
     async def handle_sse(
             self,
             scope: Scope,
@@ -178,22 +207,35 @@ class GraphQLController:
             matches: RouteMatches,
             content: Content
     ) -> HttpResponse:
-        """Handled a server sent event style subscription"""
+        """Handle a server sent event style direct subscription"""
 
-        # The token for the subscription is given in the url.
-        token = matches['token']
-        subscription = self.sse_subscriptions[token]
-        del self.sse_subscriptions[token]
+        parsed_qs = parse_qs(scope['query_string'])
+        body_text_encoded = parsed_qs[b'graphql']
+        body_text = b64decode(body_text_encoded[0])
+        body = json.loads(body_text)
+        query_text = body['query']
+        variable_values = body.get('variables')
+        operation_name = body.get('operationName')
 
-        logger.debug('SSE received subscription request: token="%s", htto_version=%s', token, scope['http_version'])
+        query_document = graphql.parse(query_text)
+
+        result = await graphql.subscribe(
+            schema=self.schema,
+            document=query_document,
+            variable_values=variable_values,
+            operation_name=operation_name,
+            context_value=info
+        )
+
+        logger.debug('SSE received subscription request: http_version=%s', scope['http_version'])
 
         # Make an async iterator for the subscription results.
         async def send_events():
-            logger.debug('SSE sending events: token="%s"', token)
+            logger.debug('SSE sending events')
 
             try:
                 async for val in cancellable_aiter(
-                        subscription.result,
+                        result,
                         self.cancellation_event,
                         timeout=self.ping_interval
                 ):
@@ -202,14 +244,13 @@ class GraphQLController:
                     else:
                         message = f'event: message\ndata: {json.dumps(val)}\n\n'.encode('utf-8')
 
-                    logger.debug('SSE sending: %s', message)
                     yield message
                     # Give the ASGI server a nudge.
                     yield ':\n\n'.encode('utf-8')
             except asyncio.CancelledError:
-                logger.debug("SSE task cancelled for token '%s'", token)
+                logger.debug("SSE task cancelled")
 
-            logger.debug('SSE Stopped subscription for token "%s"', token)
+            logger.debug('SSE Stopped subscription')
 
         headers = [
             (b'cache-control', b'no-cache'),
@@ -219,25 +260,21 @@ class GraphQLController:
 
         return response_code.OK, headers, send_events()
 
-    async def _reap_subscriptions(self) -> None:
-        """Remove subscriptions that were never opened"""
-        expiry = datetime.utcnow() - timedelta(seconds=self.subscription_expiry)
-        tokens = {
-            token: subscription.result
-            for token, subscription in self.sse_subscriptions.items()
-            if subscription.created < expiry
-        }
-        for token, result in tokens.items():
-            await result.aclose()
-            del self.sse_subscriptions[token]
-
+def _wrap_middleware(
+        middleware: Optional[HttpMiddlewareCallback],
+        handler: HttpRequestCallback
+) -> HttpRequestCallback:
+    if middleware is None:
+        return handler
+    else:
+        return mw(middleware, handler=handler)
 
 def add_graphql_next(
         app: Application,
         schema: GraphQLSchema,
         path_prefix: str = '',
-        rest_middleware=None,
-        view_middleware=None,
+        rest_middleware: Optional[HttpMiddlewareCallback] = None,
+        view_middleware: Optional[HttpMiddlewareCallback] = None,
         graphql_middleware=None,
         subscription_expiry: float = 60,
         ping_interval: float = 10
@@ -246,30 +283,36 @@ def add_graphql_next(
 
     :param app: The bareASGI application.
     :param schema: The GraphQL schema to use.
-    :param path_prefix: An optional path prefix from which to provide enedpoints.
+    :param path_prefix: An optional path prefix from which to provide endpoints.
     :param rest_middleware: Middleware for the rest end points.
     :param view_middleware: Middleware from the GraphiQL end point.
     :param graphql_middleware: Middleware for graphql-core-next.
     :param subscription_expiry: The time to wait before abandoning an unused subscription.
     :return: Returns the constructed controller.
     """
-    controller = GraphQLController(schema, path_prefix, graphql_middleware, subscription_expiry, ping_interval)
+    controller = GraphQLController(
+        schema,
+        path_prefix,
+        graphql_middleware,
+        subscription_expiry,
+        ping_interval
+    )
 
     # Add the REST route
     app.http_router.add(
         {'GET'},
         path_prefix + '/graphql',
-        controller.handle_graphql if rest_middleware is None else mw(rest_middleware, handler=controller.handle_graphql)
+        _wrap_middleware(rest_middleware, controller.handle_graphql)
     )
     app.http_router.add(
         {'POST', 'OPTION'},
         path_prefix + '/graphql',
-        controller.handle_graphql if rest_middleware is None else mw(rest_middleware, handler=controller.handle_graphql)
+        _wrap_middleware(rest_middleware, controller.handle_graphql)
     )
     app.http_router.add(
         {'GET'},
-        path_prefix + '/sse-subscription/{token}',
-        controller.handle_sse if rest_middleware is None else mw(rest_middleware, handler=controller.handle_sse)
+        path_prefix + '/sse-subscription',
+        _wrap_middleware(rest_middleware, controller.handle_sse)
     )
 
     # Add the subscription route
@@ -282,7 +325,7 @@ def add_graphql_next(
     app.http_router.add(
         {'GET'},
         path_prefix + '/graphiql',
-        controller.view_graphiql if view_middleware is None else mw(view_middleware, handler=controller.view_graphiql)
+        _wrap_middleware(view_middleware, controller.view_graphiql)
     )
 
     return controller

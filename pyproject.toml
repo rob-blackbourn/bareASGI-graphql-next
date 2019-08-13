@@ -24,6 +24,8 @@ uvicorn = "^0.8"
 hypercorn = "^0.7.2"
 Sphinx = "^1.8"
 sphinxcontrib-websupport = "^1.1"
+pylint = "^2.3"
+mypy = "^0.720.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

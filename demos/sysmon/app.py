@@ -1,3 +1,7 @@
+"""
+The ASGI Application
+"""
+
 import asyncio
 from functools import partial
 import logging
@@ -6,43 +10,51 @@ from bareasgi_cors import CORSMiddleware
 from bareasgi_graphql_next import add_graphql_next, GraphQLController
 from baretypes import Scope, Info, RouteMatches, Content, HttpResponse
 from bareutils import text_writer
-import bareutils.header as header
 from bareasgi_graphql_next.controller import _get_host
 from .system_monitor import SystemMonitor
 from .schema import schema
 
 logger = logging.getLogger(__name__)
 
-
+# pylint: disable=unused-argument
 async def start_service(scope: Scope, info: Info, request) -> None:
+    """Start the service"""
     system_monitor = SystemMonitor(30)
 
     info['system_monitor'] = system_monitor
     info['system_monitor_task'] = asyncio.create_task(system_monitor.startup())
 
 
+# pylint: disable=unused-argument
 async def stop_service(scope: Scope, info: Info, request) -> None:
+    """Stop the service"""
     system_monitor: SystemMonitor = info['system_monitor']
     system_monitor_task: asyncio.Task = info['system_monitor_task']
     system_monitor.shutdown()
     await system_monitor_task
 
 
+# pylint: disable=unused-argument
 async def start_graphql(scope: Scope, info: Info, request, *, app: Application) -> None:
+    """Start the GraphQL controller"""
     info['graphql_controller'] = add_graphql_next(app, schema, path_prefix='/test')
 
 
+# pylint: disable=unused-argument
 async def stop_graphql(scope: Scope, info: Info, request) -> None:
+    """Stop the GraphQL controller"""
     graphql_controller: GraphQLController = info['graphql_controller']
     graphql_controller.shutdown()
 
 
+# pylint: disable=unused-argument
 async def graphql_handler(
         scope: Scope,
         info: Info,
         matches: RouteMatches,
         content: Content
 ) -> HttpResponse:
+    """Handle a graphql request"""
     host = _get_host(scope).decode()
     sse_url = f"{scope['scheme']}://{host}/test/graphql"
 
@@ -204,8 +216,9 @@ subscription {{
 
 
 def make_application() -> Application:
+    """Make the application"""
     cors_middleware = CORSMiddleware()
-    info = {}
+    info: dict = {}
     app = Application(
         info=info,
         startup_handlers=[start_service],

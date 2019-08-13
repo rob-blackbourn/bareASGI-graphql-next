@@ -1,3 +1,7 @@
+"""
+Core type
+"""
+
 from graphql import (
     GraphQLObjectType,
     GraphQLField,
@@ -7,6 +11,7 @@ from graphql import (
 
 from .cpu_times_type import CpuTimesType
 
+# pylint: disable=invalid-name
 CoreType = GraphQLObjectType(
     name='Core',
     fields=lambda: {

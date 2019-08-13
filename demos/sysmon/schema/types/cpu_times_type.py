@@ -1,3 +1,7 @@
+"""
+CPU Times type
+"""
+
 from graphql import (
     GraphQLObjectType,
     GraphQLField,
@@ -5,6 +9,7 @@ from graphql import (
     GraphQLFloat
 )
 
+# pylint: disable=invalid-name
 CpuTimesType = GraphQLObjectType(
     name='CpuTimes',
     fields=lambda: {

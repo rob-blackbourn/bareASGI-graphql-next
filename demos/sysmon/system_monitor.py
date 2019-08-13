@@ -1,9 +1,16 @@
+"""
+System Monitor
+"""
+
 import asyncio
+import logging
+
 from asyncio import Lock, Queue
 from datetime import datetime
-import logging
 from math import nan
+
 import psutil
+
 from stringcase import camelcase
 from typing import List, Mapping, Any
 
@@ -11,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class SystemMonitor:
+    """System Monitor"""
 
     def __init__(self, poll_interval_seconds: float = 30) -> None:
         self.cancellation_token = asyncio.Event()
@@ -19,16 +27,21 @@ class SystemMonitor:
         self.cpu_pct = [nan for _ in range(self.cpu_count)]
         self.listeners: List[Queue] = []
         self.lock = Lock()
-        self.latest = {}
+        self.latest: dict = {}
 
     def shutdown(self) -> None:
+        """Stop the service"""
         self.cancellation_token.set()
 
     async def startup(self) -> None:
+        """Start the service"""
         self._gather_data()
         while not self.cancellation_token.is_set():
             try:
-                await asyncio.wait_for(self.cancellation_token.wait(), timeout=self.poll_interval_seconds)
+                await asyncio.wait_for(
+                    self.cancellation_token.wait(),
+                    timeout=self.poll_interval_seconds
+                )
             except asyncio.TimeoutError:
                 self._gather_data()
                 await self.notify_listeners()
@@ -46,7 +59,10 @@ class SystemMonitor:
                 'cores': [
                     {
                         'percent': cpu_pct[i],
-                        'times': {camelcase(k): getattr(cpu_times[i], k) for k in cpu_times[i]._fields}
+                        'times': {
+                            camelcase(k): getattr(cpu_times[i], k)
+                            for k in cpu_times[i]._fields
+                        }
 
                     }
                     for i in range(self.cpu_count)
@@ -56,6 +72,7 @@ class SystemMonitor:
         }
 
     async def notify_listeners(self) -> None:
+        """Notify the listeners of new data"""
         await self.lock.acquire()
         try:
             for listener in self.listeners:
@@ -65,9 +82,11 @@ class SystemMonitor:
 
     @classmethod
     async def notify_listener(cls, listener: Queue, message: Mapping[str, Any]) -> None:
+        """Notify a listener"""
         await listener.put(message)
 
     async def listen(self) -> Queue:
+        """Add a listener"""
         listener = asyncio.Queue()
 
         await self.lock.acquire()
@@ -79,6 +98,7 @@ class SystemMonitor:
             self.lock.release()
 
     async def unlisten(self, listener: Queue) -> None:
+        """Remove the listener"""
         await self.lock.acquire()
         try:
             self.listeners.remove(listener)

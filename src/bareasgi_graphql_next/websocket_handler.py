@@ -1,3 +1,7 @@
+"""
+WebSocket handler
+"""
+
 from baretypes import (
     Scope,
     Info,
@@ -9,6 +13,7 @@ from .websocket_instance import GraphQLWebSocketHandlerInstance
 
 
 class GraphQLWebSocketHandler:
+    """GraphQL WebSocket handler"""
 
     def __init__(self, schema: graphql.GraphQLSchema):
         self.schema = schema

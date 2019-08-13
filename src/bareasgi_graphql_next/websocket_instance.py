@@ -1,9 +1,14 @@
+"""
+GraphQL WebSocket instance
+"""
+
 import asyncio
-from baretypes import Info, WebSocket
-import graphql
 import json
 import logging
 from typing import Any, Mapping, MutableMapping, Optional, AsyncIterator, Tuple, Union, List, Set
+
+from baretypes import Info, WebSocket
+import graphql
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +125,7 @@ class GraphQLWebSocketHandlerInstance:
         else:
             raise ProtocolError(f"Received unknown message type '{type_}'.")
 
-    # noinspection PyUnusedLocal
+    # pylint: disable=unused-argument
     async def _on_connection_init(self, id_: Optional[Id], connection_params: Optional[Any]):
         try:
             await self.web_socket.send(self.to_message('connection_ack', id_))

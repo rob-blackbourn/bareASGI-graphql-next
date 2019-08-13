@@ -1,3 +1,7 @@
+"""
+GraphQL Types
+"""
+
 from .cpu_stats_type import CpuStatsType
 from .cpu_times_type import CpuTimesType
 from .cpu_type import CpuType

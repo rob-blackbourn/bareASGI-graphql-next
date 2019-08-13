@@ -1,3 +1,7 @@
+"""
+System type
+"""
+
 from graphql import (
     GraphQLObjectType,
     GraphQLField,
@@ -7,6 +11,7 @@ from graphql import (
 
 from .cpu_type import CpuType
 
+# pylint: disable=invalid-name
 SystemType = GraphQLObjectType(
     name='System',
     fields=lambda: {

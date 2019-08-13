@@ -1,3 +1,7 @@
+"""
+Graphiql template
+"""
+
 import string
 
 graphiql_template = string.Template(
