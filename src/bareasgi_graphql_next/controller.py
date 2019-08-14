@@ -7,11 +7,10 @@ import io
 import json
 import logging
 
-from base64 import b64encode, b64decode
 from cgi import parse_multipart
 from datetime import datetime
-from typing import List, Dict, Any, Optional
-from urllib.parse import parse_qs
+from typing import List, Dict, Any, Optional, Mapping
+from urllib.parse import parse_qs, quote_plus, unquote_plus
 
 import graphql
 import bareutils.header as header
@@ -34,7 +33,7 @@ from bareasgi.middleware import mw
 
 from .template import make_template
 from .websocket_handler import GraphQLWebSocketHandler
-from .utils import parse_header, cancellable_aiter
+from .utils import cancellable_aiter
 
 logger = logging.getLogger(__name__)
 
@@ -117,27 +116,32 @@ class GraphQLController:
         await self.ws_subscription_handler(scope, info, matches, web_socket)
 
     @classmethod
-    async def _get_query_document(cls, headers: List[Header], content: Content):
-        content_type = next((v for k, v in headers if k == b'content-type'), None)
-        if not isinstance(content_type, bytes):
-            raise TypeError('Expected content-type header')
-        content_type, parameters = parse_header(content_type)
+    async def _get_query_document(
+            cls,
+            headers: List[Header],
+            content: Content
+    ) -> Mapping[str, Any]:
+        content_type, parameters = header.content_type(headers)
 
         if content_type == b'application/graphql':
             return {'query': await text_reader(content)}
         elif content_type in (b'application/json', b'text/plain'):
             return json.loads(await text_reader(content))
         elif content_type == b'application/x-www-form-urlencoded':
-            return parse_qs(await text_reader(content))
+            body = parse_qs(await text_reader(content))
+            return {name: value[0] for name, value in body.items()}
         elif content_type == b'multipart/form-data':
-            return parse_multipart(
-                io.StringIO(await text_reader(content)),
-                parameters[b"boundary"]
-            )
+            return {
+                name: value[0]
+                for name, value in parse_multipart(
+                    io.StringIO(await text_reader(content)),
+                    {key.decode('utf-8'): val for key, val in parameters.items()}
+                ).items()
+            }
         else:
             raise RuntimeError('Content type not supported')
 
-    # noinspection PyUnusedLocal
+    # pylint: disable=unused-argument
     async def handle_graphql(
             self,
             scope: Scope,
@@ -150,46 +154,47 @@ class GraphQLController:
         try:
             body = await self._get_query_document(scope['headers'], content)
 
-            query_text = body['query']
-            variable_values = body.get('variables')
-            operation_name = body.get('operationName')
+            query_text: str = body['query']
+            variable_values: Optional[Dict[str, Any]] = body.get('variables')
+            operation_name: Optional[str] = body.get('operationName')
 
             query_document = graphql.parse(query_text)
 
-            # noinspection PyUnresolvedReferences
             if _has_subscription(query_document):
-                text = json.dumps(body)
-                buf = text.encode('utf-8')
-                buf_encoded = b64encode(buf)
-                graphql_qs = buf_encoded.decode('utf-8')
+                # Handle a subscription by returning 201 (Created) with
+                # the url location of the subscription.
+                scheme = scope['scheme']
                 host = _get_host(scope).decode('utf-8')
-                location = f'{scope["scheme"]}://{host}{self.path_prefix}/sse-subscription?graphql={graphql_qs}'
+                path = self.path_prefix + '/sse-subscription'
+                graphql_qs = quote_plus(json.dumps(body))
+                location = f'{scheme}://{host}{path}?graphql={graphql_qs}'
                 headers = [
                     (b'access-control-expose-headers', b'location'),
                     (b'location', location.encode('ascii'))
                 ]
                 return response_code.CREATED, headers
+            else:
+                # Handle a query
+                result = await graphql.graphql(
+                    schema=self.schema,
+                    source=graphql.Source(query_text),  # source=query,
+                    variable_values=variable_values,
+                    operation_name=operation_name,
+                    context_value=info,
+                    middleware=self.middleware
+                )
 
-            result = await graphql.graphql(
-                schema=self.schema,
-                source=graphql.Source(query_text),  # source=query,
-                variable_values=variable_values,
-                operation_name=operation_name,
-                context_value=info,
-                middleware=self.middleware
-            )
+                response: Dict[str, Any] = {'data': result.data}
+                if result.errors:
+                    response['errors'] = [error.formatted for error in result.errors]
 
-            response: Dict[str, Any] = {'data': result.data}
-            if result.errors:
-                response['errors'] = [error.formatted for error in result.errors]
+                text = json.dumps(response)
+                headers = [
+                    (b'content-type', b'application/json'),
+                    (b'content-length', str(len(text)).encode())
+                ]
 
-            text = json.dumps(response)
-            headers = [
-                (b'content-type', b'application/json'),
-                (b'content-length', str(len(text)).encode())
-            ]
-
-            return 200, headers, text_writer(text)
+                return 200, headers, text_writer(text)
 
         # pylint: disable=bare-except
         except:
@@ -210,19 +215,17 @@ class GraphQLController:
         """Handle a server sent event style direct subscription"""
 
         parsed_qs = parse_qs(scope['query_string'])
-        body_text_encoded = parsed_qs[b'graphql']
-        body_text = b64decode(body_text_encoded[0])
-        body = json.loads(body_text)
-        query_text = body['query']
-        variable_values = body.get('variables')
-        operation_name = body.get('operationName')
+        body = json.loads(unquote_plus(parsed_qs[b'graphql'][0].decode('utf-8')))
+        query_text: str = body['query']
+        variables: Optional[Dict[str, Any]] = body.get('variables')
+        operation_name: Optional[str] = body.get('operationName')
 
         query_document = graphql.parse(query_text)
 
         result = await graphql.subscribe(
             schema=self.schema,
             document=query_document,
-            variable_values=variable_values,
+            variable_values=variables,
             operation_name=operation_name,
             context_value=info
         )
