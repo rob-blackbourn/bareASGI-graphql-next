@@ -47,7 +47,7 @@ A utility function `add_graphql_next` is provided.
     :caption: Contents:
 
     api
-    subscriptions
+    clients
 
 Indices and tables
 ==================
