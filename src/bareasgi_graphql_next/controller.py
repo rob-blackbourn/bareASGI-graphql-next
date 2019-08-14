@@ -10,7 +10,7 @@ import logging
 from cgi import parse_multipart
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Mapping
-from urllib.parse import parse_qs, quote_plus, unquote_plus
+from urllib.parse import parse_qs, urlencode, urlencode
 
 import graphql
 import bareutils.header as header
@@ -131,11 +131,11 @@ class GraphQLController:
         try:
             body = await self._get_query_document(scope['headers'], content)
 
-            query_text: str = body['query']
-            variable_values: Optional[Dict[str, Any]] = body.get('variables')
+            query: str = body['query']
+            variables: Optional[Dict[str, Any]] = body.get('variables')
             operation_name: Optional[str] = body.get('operationName')
 
-            query_document = graphql.parse(query_text)
+            query_document = graphql.parse(query)
 
             if has_subscription(query_document):
                 # Handle a subscription by returning 201 (Created) with
@@ -143,8 +143,13 @@ class GraphQLController:
                 scheme = scope['scheme']
                 host = get_host(scope).decode('utf-8')
                 path = self.path_prefix + '/sse-subscription'
-                graphql_qs = quote_plus(json.dumps(body))
-                location = f'{scheme}://{host}{path}?graphql={graphql_qs}'
+                query_string = urlencode(
+                    {
+                        name.encode('utf-8'): json.dumps(value).encode('utf-8')
+                        for name, value in body.items()
+                    }
+                )
+                location = f'{scheme}://{host}{path}?{query_string}'
                 headers = [
                     (b'access-control-expose-headers', b'location'),
                     (b'location', location.encode('ascii'))
@@ -154,8 +159,8 @@ class GraphQLController:
                 # Handle a query
                 result = await graphql.graphql(
                     schema=self.schema,
-                    source=graphql.Source(query_text),  # source=query,
-                    variable_values=variable_values,
+                    source=graphql.Source(query),  # source=query,
+                    variable_values=variables,
                     operation_name=operation_name,
                     context_value=info,
                     middleware=self.middleware
@@ -191,8 +196,11 @@ class GraphQLController:
     ) -> HttpResponse:
         """Handle a server sent event style direct subscription"""
 
-        parsed_qs = parse_qs(scope['query_string'])
-        body = json.loads(unquote_plus(parsed_qs[b'graphql'][0].decode('utf-8')))
+        query_string = parse_qs(scope['query_string'])
+        body = {
+            name.decode('utf-8'): json.loads(value[0].decode('utf-8'))
+            for name, value in query_string.items()
+        }
         query_text: str = body['query']
         variables: Optional[Dict[str, Any]] = body.get('variables')
         operation_name: Optional[str] = body.get('operationName')
