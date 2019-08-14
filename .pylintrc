@@ -1,5 +1,5 @@
 [MASTER]
-init-hook="import sys; sys.path.append('./src')"
+init-hook="import sys; sys.path.append('./src'); sys.path.append('./demos')"
 
 [BASIC]
 good-names=logger,app,config,host
