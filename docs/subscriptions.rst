@@ -30,17 +30,30 @@ As well as the more popular :doc:`WebSocket Subscription </ws_subscriptions>`, a
 is also supported. While this is uncommon, it is a really good use of SSE, as all the communication
 if from the server to the client.
 
-In this implementation queries, mutations and subscriptions are all made using the `fetch` api.
-With a successful query or mutation the response status code is 200, and the body contains the
-result. For a subscription the status code 201 is returned, and the `location` header contains
-a unique url which is used to request server sent events through the
-`EventSource <https://developer.mozilla.org/en-US/docs/Web/API/EventSource>`_ API.
-
 Usage
 -----
 
-Server sent events are paricularly simple to use from the browser. Here is some sample code
-that can be used in the browser:
+The GraphQL controller exposes an endpoint: `/sse-subscription?query=...&variables=...&operationName=...`
+
+This can be called in the following manner:
+
+.. code-block:: js
+
+    const query = encodeURIComponent('subscription { mySubscription { name timestamp } }')
+    const url = `http://www.example.com/sse-subscription?query=${query}`
+    const eventSource = new EventSource(url)
+    eventSource.onmessage = event => {
+        data = JSON.parse(event.data)
+        console.log(data)
+    }
+
+In this implementation queries, mutations and subscriptions can all be made using the `fetch` api.
+With a successful query or mutation the response status code is 200 (OK), and the body contains the
+result. For a subscription the status code 201 (CREATED) is returned, and the `location` header contains
+the url to be used to request server sent events through the
+`EventSource <https://developer.mozilla.org/en-US/docs/Web/API/EventSource>`_ API.
+
+This means we can provide a single client function to handle all three requests. Here is some sample code that does this.
 
 .. code-block:: js
 
@@ -60,6 +73,7 @@ that can be used in the browser:
     export function graphQLClient(url, query, variables, operationName, onNext, onError, onComplete) {
       const abortController = new AbortController()
 
+      // Invoke fetch as a POST with the GraphQL content in the body.
       fetch(url, {
         method: 'POST',
         signal: abortController.signal,
@@ -71,26 +85,34 @@ that can be used in the browser:
       })
         .then(response => {
           if (response.status === 200) {
-            // The response is from a query or mutation.
+            // A 200 response is from a query or mutation.
+
             response.json()
               .then(json => {
                 onNext(json)
                 onComplete()
               })
               .catch(error => onError(error))
+
           } else if (response.status === 201) {
-            // The response is from a subscription.
+            // A 201 is the response for a subscription.
+
+            // The url for the event source is passed in the 'location' header.
             const location = response.headers.get('location')
+            
             const eventSource = new EventSource(location)
+
             eventSource.onmessage = event => {
               console.log('EventSource:onmessage', event)
               const data = JSON.parse(event.data)
               onNext(data)
             }
+
             eventSource.onerror = error => {
               console.log('EventSource:onerror', error)
               onError(error)
             }
+
             abortController.signal.onabort = () => {
               console.log('AbortController: onabort')
               if (eventSource.readyState !== 2) {
@@ -100,6 +122,7 @@ that can be used in the browser:
           } else {
             onError(new FetchError(response, 'Failed to execute GraphQL'))
           }
+
         })
         .catch(error => onError(error))
 
