@@ -9,7 +9,12 @@ from typing import AsyncIterator, Optional, Set, Any
 import bareutils.header as header
 import graphql
 
-from baretypes import Scope
+from baretypes import (
+    Scope,
+    HttpRequestCallback,
+    HttpMiddlewareCallback
+)
+from bareasgi.middleware import mw
 from graphql import OperationType
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 
@@ -104,3 +109,13 @@ def has_subscription(document: graphql.DocumentNode) -> bool:
     :rtype: bool
     """
     return any(_is_subscription(definition) for definition in document.definitions)
+
+def wrap_middleware(
+        middleware: Optional[HttpMiddlewareCallback],
+        handler: HttpRequestCallback
+) -> HttpRequestCallback:
+    """Optionally wrap a handler with middleware"""
+    if middleware is None:
+        return handler
+    else:
+        return mw(middleware, handler=handler)

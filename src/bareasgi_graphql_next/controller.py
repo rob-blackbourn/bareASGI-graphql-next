@@ -26,14 +26,12 @@ from baretypes import (
     RouteMatches,
     Content,
     WebSocket,
-    HttpRequestCallback,
     HttpMiddlewareCallback
 )
-from bareasgi.middleware import mw
 
 from .template import make_template
 from .websocket_handler import GraphQLWebSocketHandler
-from .utils import cancellable_aiter, has_subscription, get_host
+from .utils import cancellable_aiter, has_subscription, get_host, wrap_middleware
 
 logger = logging.getLogger(__name__)
 
@@ -242,14 +240,7 @@ class GraphQLController:
 
         return response_code.OK, headers, send_events()
 
-def _wrap_middleware(
-        middleware: Optional[HttpMiddlewareCallback],
-        handler: HttpRequestCallback
-) -> HttpRequestCallback:
-    if middleware is None:
-        return handler
-    else:
-        return mw(middleware, handler=handler)
+
 
 def add_graphql_next(
         app: Application,
@@ -284,17 +275,17 @@ def add_graphql_next(
     app.http_router.add(
         {'GET'},
         path_prefix + '/graphql',
-        _wrap_middleware(rest_middleware, controller.handle_graphql)
+        wrap_middleware(rest_middleware, controller.handle_graphql)
     )
     app.http_router.add(
         {'POST', 'OPTION'},
         path_prefix + '/graphql',
-        _wrap_middleware(rest_middleware, controller.handle_graphql)
+        wrap_middleware(rest_middleware, controller.handle_graphql)
     )
     app.http_router.add(
         {'GET'},
         path_prefix + '/sse-subscription',
-        _wrap_middleware(rest_middleware, controller.handle_sse)
+        wrap_middleware(rest_middleware, controller.handle_sse)
     )
 
     # Add the subscription route
@@ -307,7 +298,7 @@ def add_graphql_next(
     app.http_router.add(
         {'GET'},
         path_prefix + '/graphiql',
-        _wrap_middleware(view_middleware, controller.view_graphiql)
+        wrap_middleware(view_middleware, controller.view_graphiql)
     )
 
     return controller
