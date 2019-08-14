@@ -10,7 +10,7 @@ import logging
 from cgi import parse_multipart
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Mapping
-from urllib.parse import parse_qs, urlencode, urlencode
+from urllib.parse import parse_qs, urlencode
 
 import graphql
 import bareutils.header as header
@@ -196,22 +196,16 @@ class GraphQLController:
     ) -> HttpResponse:
         """Handle a server sent event style direct subscription"""
 
-        query_string = parse_qs(scope['query_string'])
         body = {
             name.decode('utf-8'): json.loads(value[0].decode('utf-8'))
-            for name, value in query_string.items()
+            for name, value in parse_qs(scope['query_string']).items()
         }
-        query_text: str = body['query']
-        variables: Optional[Dict[str, Any]] = body.get('variables')
-        operation_name: Optional[str] = body.get('operationName')
-
-        query_document = graphql.parse(query_text)
 
         result = await graphql.subscribe(
             schema=self.schema,
-            document=query_document,
-            variable_values=variables,
-            operation_name=operation_name,
+            document=graphql.parse(body['query']),
+            variable_values=body.get('variables'),
+            operation_name=body.get('operationName'),
             context_value=info
         )
 
@@ -219,7 +213,7 @@ class GraphQLController:
 
         # Make an async iterator for the subscription results.
         async def send_events():
-            logger.debug('SSE sending events')
+            logger.debug('Started SSE subscription')
 
             try:
                 async for val in cancellable_aiter(
@@ -236,9 +230,9 @@ class GraphQLController:
                     # Give the ASGI server a nudge.
                     yield ':\n\n'.encode('utf-8')
             except asyncio.CancelledError:
-                logger.debug("SSE task cancelled")
+                logger.debug("Cancelled SSE subscription")
 
-            logger.debug('SSE Stopped subscription')
+            logger.debug('Stopped SSE subscription')
 
         headers = [
             (b'cache-control', b'no-cache'),
