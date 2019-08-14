@@ -10,7 +10,7 @@ from bareasgi_cors import CORSMiddleware
 from bareasgi_graphql_next import add_graphql_next, GraphQLController
 from baretypes import Scope, Info, RouteMatches, Content, HttpResponse
 from bareutils import text_writer
-from bareasgi_graphql_next.controller import _get_host
+from bareasgi_graphql_next.controller import get_host
 from .system_monitor import SystemMonitor
 from .schema import schema
 
@@ -55,7 +55,7 @@ async def graphql_handler(
         content: Content
 ) -> HttpResponse:
     """Handle a graphql request"""
-    host = _get_host(scope).decode()
+    host = get_host(scope).decode()
     sse_url = f"{scope['scheme']}://{host}/test/graphql"
 
     html = """

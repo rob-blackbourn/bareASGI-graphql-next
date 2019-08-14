@@ -6,6 +6,11 @@ import asyncio
 from asyncio import Event
 from typing import AsyncIterator, Optional, Set, Any
 
+import bareutils.header as header
+import graphql
+
+from baretypes import Scope
+from graphql import OperationType
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 
 
@@ -68,3 +73,34 @@ async def cancellable_aiter(
                     pending.discard(sleep_task)
                 sleep_task = asyncio.create_task(asyncio.sleep(timeout))
                 pending.add(sleep_task)
+
+
+
+def _is_http_2(scope: Scope) -> bool:
+    return scope['http_version'] in ('2', '2.0')
+
+
+def get_host(scope: Scope) -> bytes:
+    """Get the host from the scope"""
+    if _is_http_2(scope):
+        return header.find(b':authority', scope['headers'])
+    else:
+        return header.find(b'host', scope['headers'])
+
+
+def _is_subscription(definition: graphql.DefinitionNode) -> bool:
+    return isinstance(
+        definition,
+        graphql.OperationDefinitionNode
+    ) and definition.operation is OperationType.SUBSCRIPTION
+
+
+def has_subscription(document: graphql.DocumentNode) -> bool:
+    """Find if a document has a subscription
+
+    :param document: The GraphQL query document
+    :type document: graphql.DocumentNode
+    :return: True if the document contains a subscription
+    :rtype: bool
+    """
+    return any(_is_subscription(definition) for definition in document.definitions)

@@ -15,7 +15,7 @@ from urllib.parse import parse_qs, quote_plus, unquote_plus
 import graphql
 import bareutils.header as header
 
-from graphql import OperationType, GraphQLSchema
+from graphql import GraphQLSchema
 from bareasgi import Application
 from bareutils import text_reader, text_writer, response_code
 from baretypes import (
@@ -33,32 +33,9 @@ from bareasgi.middleware import mw
 
 from .template import make_template
 from .websocket_handler import GraphQLWebSocketHandler
-from .utils import cancellable_aiter
+from .utils import cancellable_aiter, has_subscription, get_host
 
 logger = logging.getLogger(__name__)
-
-
-def _is_http_2(scope: Scope) -> bool:
-    return scope['http_version'] in ('2', '2.0')
-
-
-def _get_host(scope: Scope) -> bytes:
-    if _is_http_2(scope):
-        return header.find(b':authority', scope['headers'])
-    else:
-        return header.find(b'host', scope['headers'])
-
-
-def _is_subscription(definition: graphql.DefinitionNode) -> bool:
-    return isinstance(
-        definition,
-        graphql.OperationDefinitionNode
-    ) and definition.operation is OperationType.SUBSCRIPTION
-
-
-def _has_subscription(document: graphql.DocumentNode) -> bool:
-    return any(_is_subscription(definition) for definition in document.definitions)
-
 
 class GraphQLController:
     """GraphQL Controller"""
@@ -93,7 +70,7 @@ class GraphQLController:
     ) -> HttpResponse:
         """Render the Graphiql view"""
 
-        host = _get_host(scope).decode('ascii')
+        host = get_host(scope).decode('ascii')
         body = make_template(
             host,
             self.path_prefix + '/graphql',
@@ -160,11 +137,11 @@ class GraphQLController:
 
             query_document = graphql.parse(query_text)
 
-            if _has_subscription(query_document):
+            if has_subscription(query_document):
                 # Handle a subscription by returning 201 (Created) with
                 # the url location of the subscription.
                 scheme = scope['scheme']
-                host = _get_host(scope).decode('utf-8')
+                host = get_host(scope).decode('utf-8')
                 path = self.path_prefix + '/sse-subscription'
                 graphql_qs = quote_plus(json.dumps(body))
                 location = f'{scheme}://{host}{path}?graphql={graphql_qs}'
