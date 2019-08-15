@@ -54,6 +54,54 @@ class GraphQLController:
         self.ws_subscription_handler = GraphQLWebSocketHandler(schema)
         self.cancellation_event = asyncio.Event()
 
+    def add_routes(
+            self,
+            app: Application,
+            path_prefix: str = '',
+            rest_middleware: Optional[HttpMiddlewareCallback] = None,
+            view_middleware: Optional[HttpMiddlewareCallback] = None
+    ):
+        """Add the routes
+
+        :param app: The ASGI application
+        :type app: Application
+        :param path_prefix: The path prefix
+        :type path_prefix: str
+        :param rest_middleware: The rest middleware, defaults to None
+        :type rest_middleware: Optional[HttpMiddlewareCallback], optional
+        :param view_middleware: The view middleware, defaults to None
+        :type view_middleware: Optional[HttpMiddlewareCallback], optional
+        """
+        # Add the REST route
+        app.http_router.add(
+            {'GET'},
+            path_prefix + '/graphql',
+            wrap_middleware(rest_middleware, self.handle_graphql)
+        )
+        app.http_router.add(
+            {'POST', 'OPTION'},
+            path_prefix + '/graphql',
+            wrap_middleware(rest_middleware, self.handle_graphql)
+        )
+        app.http_router.add(
+            {'GET'},
+            path_prefix + '/sse-subscription',
+            wrap_middleware(rest_middleware, self.handle_sse)
+        )
+
+        # Add the subscription route
+        app.ws_router.add(
+            path_prefix + '/subscriptions',
+            self.handle_subscription
+        )
+
+        # Add Graphiql
+        app.http_router.add(
+            {'GET'},
+            path_prefix + '/graphiql',
+            wrap_middleware(view_middleware, self.view_graphiql)
+        )
+
     def shutdown(self) -> None:
         """Shutdown the service"""
         self.cancellation_event.set()
@@ -239,66 +287,3 @@ class GraphQLController:
         ]
 
         return response_code.OK, headers, send_events()
-
-
-
-def add_graphql_next(
-        app: Application,
-        schema: GraphQLSchema,
-        path_prefix: str = '',
-        rest_middleware: Optional[HttpMiddlewareCallback] = None,
-        view_middleware: Optional[HttpMiddlewareCallback] = None,
-        graphql_middleware=None,
-        subscription_expiry: float = 60,
-        ping_interval: float = 10
-) -> GraphQLController:
-    """Add graphql support to an bareASGI application.
-
-    :param app: The bareASGI application.
-    :param schema: The GraphQL schema to use.
-    :param path_prefix: An optional path prefix from which to provide endpoints.
-    :param rest_middleware: Middleware for the rest end points.
-    :param view_middleware: Middleware from the GraphiQL end point.
-    :param graphql_middleware: Middleware for graphql-core-next.
-    :param subscription_expiry: The time to wait before abandoning an unused subscription.
-    :return: Returns the constructed controller.
-    """
-    controller = GraphQLController(
-        schema,
-        path_prefix,
-        graphql_middleware,
-        subscription_expiry,
-        ping_interval
-    )
-
-    # Add the REST route
-    app.http_router.add(
-        {'GET'},
-        path_prefix + '/graphql',
-        wrap_middleware(rest_middleware, controller.handle_graphql)
-    )
-    app.http_router.add(
-        {'POST', 'OPTION'},
-        path_prefix + '/graphql',
-        wrap_middleware(rest_middleware, controller.handle_graphql)
-    )
-    app.http_router.add(
-        {'GET'},
-        path_prefix + '/sse-subscription',
-        wrap_middleware(rest_middleware, controller.handle_sse)
-    )
-
-    # Add the subscription route
-    app.ws_router.add(
-        path_prefix + '/subscriptions',
-        controller.handle_subscription
-    )
-
-    # Add Graphiql
-    app.http_router.add(
-        {'GET'},
-        path_prefix + '/graphiql',
-        wrap_middleware(view_middleware, controller.view_graphiql)
-    )
-
-    return controller
