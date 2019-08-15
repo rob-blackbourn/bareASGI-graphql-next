@@ -42,7 +42,7 @@ def add_graphql_next(
     """
 
     # pylint: disable=unused-argument
-    async def start_graphql(scope: Scope, info: Info, request, *, app: Application) -> None:
+    async def start_graphql(scope: Scope, info: Info, request) -> None:
         """Start the GraphQL controller"""
 
         logger.debug('Starting the GraphQL controller')

@@ -268,11 +268,15 @@ class GraphQLController:
                         timeout=self.ping_interval
                 ):
                     if val is None:
-                        message = f'event: ping\ndata: {datetime.utcnow()}\n\n'.encode('utf-8')
+                        message = f'event: ping\ndata: {datetime.utcnow()}\n\n'
                     else:
-                        message = f'event: message\ndata: {json.dumps(val)}\n\n'.encode('utf-8')
+                        response = {
+                            'data': val.data,
+                            'errors': val.errors
+                        }
+                        message = f'event: message\ndata: {json.dumps(response)}\n\n'
 
-                    yield message
+                    yield message.encode('utf-8')
                     # Give the ASGI server a nudge.
                     yield ':\n\n'.encode('utf-8')
             except asyncio.CancelledError:
