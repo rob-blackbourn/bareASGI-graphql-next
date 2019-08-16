@@ -9,13 +9,14 @@ import logging
 
 from cgi import parse_multipart
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Mapping
+from typing import List, Dict, Any, Optional, Mapping, cast
 from urllib.parse import parse_qs, urlencode
 
 import graphql
 import bareutils.header as header
 
 from graphql import GraphQLSchema
+from graphql.subscription.map_async_iterator import MapAsyncIterator
 from bareasgi import Application
 from bareutils import text_reader, text_writer, response_code
 from baretypes import (
@@ -31,7 +32,13 @@ from baretypes import (
 
 from .template import make_template
 from .websocket_handler import GraphQLWebSocketHandler
-from .utils import cancellable_aiter, has_subscription, get_host, wrap_middleware
+from .utils import (
+    cancellable_aiter,
+    has_subscription,
+    get_host,
+    wrap_middleware,
+    ZeroEvent
+)
 
 logger = logging.getLogger(__name__)
 
@@ -43,16 +50,15 @@ class GraphQLController:
             schema: GraphQLSchema,
             path_prefix: str = '',
             middleware=None,
-            subscription_expiry: float = 60,
             ping_interval: float = 10
     ) -> None:
         self.schema = schema
         self.path_prefix = path_prefix
         self.middleware = middleware
-        self.subscription_expiry = subscription_expiry
         self.ping_interval = ping_interval
         self.ws_subscription_handler = GraphQLWebSocketHandler(schema)
         self.cancellation_event = asyncio.Event()
+        self.subscription_count = ZeroEvent()
 
     def add_routes(
             self,
@@ -102,9 +108,10 @@ class GraphQLController:
             wrap_middleware(view_middleware, self.view_graphiql)
         )
 
-    def shutdown(self) -> None:
+    async def shutdown(self) -> None:
         """Shutdown the service"""
         self.cancellation_event.set()
+        await self.subscription_count.wait()
 
     # pylint: disable=unused-argument
     async def view_graphiql(
@@ -247,21 +254,26 @@ class GraphQLController:
             for name, value in parse_qs(scope['query_string']).items()
         }
 
-        result = await graphql.subscribe(
-            schema=self.schema,
-            document=graphql.parse(body['query']),
-            variable_values=body.get('variables'),
-            operation_name=body.get('operationName'),
-            context_value=info
+        result = cast(
+            MapAsyncIterator,
+            await graphql.subscribe(
+                schema=self.schema,
+                document=graphql.parse(body['query']),
+                variable_values=body.get('variables'),
+                operation_name=body.get('operationName'),
+                context_value=info
+            )
         )
 
         logger.debug('SSE received subscription request: http_version=%s', scope['http_version'])
 
         # Make an async iterator for the subscription results.
-        async def send_events():
+        async def send_events(zero_event: ZeroEvent):
             logger.debug('Started SSE subscription')
 
             try:
+                zero_event.increment()
+
                 async for val in cancellable_aiter(
                         result,
                         self.cancellation_event,
@@ -281,8 +293,11 @@ class GraphQLController:
                     yield ':\n\n'.encode('utf-8')
             except asyncio.CancelledError:
                 logger.debug("Cancelled SSE subscription")
+            finally:
+                zero_event.decrement()
 
             logger.debug('Stopped SSE subscription')
+
 
         headers = [
             (b'cache-control', b'no-cache'),
@@ -290,4 +305,4 @@ class GraphQLController:
             (b'connection', b'keep-alive')
         ]
 
-        return response_code.OK, headers, send_events()
+        return response_code.OK, headers, send_events(self.subscription_count)

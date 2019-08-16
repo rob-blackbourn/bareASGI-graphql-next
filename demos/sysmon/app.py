@@ -3,11 +3,10 @@ The ASGI Application
 """
 
 import asyncio
-from functools import partial
 import logging
 from bareasgi import Application
 from bareasgi_cors import CORSMiddleware
-from bareasgi_graphql_next import add_graphql_next, GraphQLController
+from bareasgi_graphql_next import add_graphql_next
 from baretypes import Scope, Info, RouteMatches, Content, HttpResponse
 from bareutils import text_writer
 from bareasgi_graphql_next.controller import get_host
@@ -32,19 +31,6 @@ async def stop_service(scope: Scope, info: Info, request) -> None:
     system_monitor_task: asyncio.Task = info['system_monitor_task']
     system_monitor.shutdown()
     await system_monitor_task
-
-
-# pylint: disable=unused-argument
-async def start_graphql(scope: Scope, info: Info, request, *, app: Application) -> None:
-    """Start the GraphQL controller"""
-    info['graphql_controller'] = add_graphql_next(app, schema, path_prefix='/test')
-
-
-# pylint: disable=unused-argument
-async def stop_graphql(scope: Scope, info: Info, request) -> None:
-    """Stop the GraphQL controller"""
-    graphql_controller: GraphQLController = info['graphql_controller']
-    graphql_controller.shutdown()
 
 
 # pylint: disable=unused-argument
@@ -225,9 +211,7 @@ def make_application() -> Application:
         shutdown_handlers=[stop_service],
         middlewares=[cors_middleware]
     )
-
-    app.startup_handlers.append(partial(start_graphql, app=app))
-    app.shutdown_handlers.append(stop_graphql)
+    add_graphql_next(app, schema, '/test')
 
     app.http_router.add({'GET'}, '/test/graphql2', graphql_handler)
 
