@@ -89,7 +89,7 @@ def start_server() -> None:
     http_server = 'uvicorn'  # 'hypercorn' or 'uvicorn'
     host = '0.0.0.0'
     port = 9009
-    ssl_enabled = True
+    ssl_enabled = False
     keyfile = os.path.expanduser(f'~/.keys/{hostname}.key')
     certfile = os.path.expanduser(f'~/.keys/{hostname}.crt')
 
