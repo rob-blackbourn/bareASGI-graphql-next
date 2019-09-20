@@ -1,9 +1,3 @@
-"""
-The ASGI Application
-"""
-
-import string
-HTML = string.Template("""
 <!DOCTYPE html>
 <html>
   <head>
@@ -156,7 +150,3 @@ subscription {
   </script>     
   </body>
 </html>
-    """)
-    
-def make_html(sse_url: str) -> str:
-    return HTML.substitute(sse_url=sse_url)

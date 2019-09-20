@@ -5,7 +5,7 @@ The ASGI Application
 import asyncio
 import logging
 import string
-
+import pkg_resources
 
 from bareasgi import Application
 from bareasgi_cors import CORSMiddleware
@@ -16,7 +16,6 @@ from bareasgi_graphql_next.controller import get_host
 
 from .system_monitor import SystemMonitor
 from .schema import schema
-from .html_template import make_html
 
 logger = logging.getLogger(__name__)
 
@@ -48,14 +47,19 @@ async def graphql_handler(
     """Handle a graphql request"""
     host = get_host(scope).decode()
     sse_url = f"{scope['scheme']}://{host}/test/graphql"
-    html = make_html(sse_url)
+    html = info['page_template'].substitute(sse_url=sse_url)
     return 200, [(b'content-type', b'text/html')], text_writer(html)
 
 
 def make_application() -> Application:
     """Make the application"""
+
+    page_filename = pkg_resources.resource_filename(__name__, "page.html")
+    with open(page_filename, 'rt') as file_ptr:
+        page = file_ptr.read()
+
     cors_middleware = CORSMiddleware()
-    info: dict = {}
+    info: dict = {'page_template': string.Template(page)}
     app = Application(
         info=info,
         startup_handlers=[start_service],
