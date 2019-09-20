@@ -1,5 +1,8 @@
+"""The schema for the time subscription"""
+
 import asyncio
 from datetime import datetime
+
 from graphql import (
     GraphQLField,
     GraphQLNonNull,
@@ -8,13 +11,14 @@ from graphql import (
     GraphQLString
 )
 
-
-def resolve_time(root, info):
+def query_time(_root, _info):
+    """Query time is an iso string"""
     print('Resolving time')
     return datetime.now().isoformat()
 
 
-async def subscribe_time(root, info):
+async def subscribe_time(_root, _info):
+    """Start the time subscription"""
     print('Subscribing time')
     while True:
         yield {"time": datetime.now().isoformat()}
@@ -22,13 +26,13 @@ async def subscribe_time(root, info):
         await asyncio.sleep(1)
     print('Unsubscribing time')
 
-
+# pylint: disable=invalid-name
 schema = GraphQLSchema(
     query=GraphQLObjectType(
         "RootQueryType",
         {
             "time": GraphQLField(
-                GraphQLNonNull(GraphQLString), resolve=resolve_time
+                GraphQLNonNull(GraphQLString), resolve=query_time
             )
         },
     ),
