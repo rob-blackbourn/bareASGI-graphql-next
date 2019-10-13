@@ -92,7 +92,12 @@ class GraphQLController:
         app.http_router.add(
             {'GET'},
             path_prefix + '/sse-subscription',
-            wrap_middleware(rest_middleware, self.handle_sse)
+            wrap_middleware(rest_middleware, self.handle_sse_get)
+        )
+        app.http_router.add(
+            {'POST', 'OPTION'},
+            path_prefix + '/sse-subscription',
+            wrap_middleware(rest_middleware, self.handle_sse_post)
         )
 
         # Add the subscription route
@@ -195,6 +200,7 @@ class GraphQLController:
                 # the url location of the subscription.
                 scheme = scope['scheme']
                 host = get_host(scope).decode('utf-8')
+                method = header.find(b'allow', scope['headers'], b'GET')
                 path = self.path_prefix + '/sse-subscription'
                 query_string = urlencode(
                     {
@@ -202,7 +208,9 @@ class GraphQLController:
                         for name, value in body.items()
                     }
                 )
-                location = f'{scheme}://{host}{path}?{query_string}'
+                location = f'{scheme}://{host}{path}'
+                if method == b'GET':
+                    location += f'?{query_string}'
                 headers = [
                     (b'access-control-expose-headers', b'location'),
                     (b'location', location.encode('ascii'))
@@ -240,7 +248,7 @@ class GraphQLController:
             ]
             return response_code.INTERNAL_SERVER_ERROR, headers, text_writer(text)
 
-    async def handle_sse(
+    async def handle_sse_get(
             self,
             scope: Scope,
             info: Info,
@@ -249,10 +257,38 @@ class GraphQLController:
     ) -> HttpResponse:
         """Handle a server sent event style direct subscription"""
 
+        logger.debug('SSE received GET subscription request: http_version=%s', scope['http_version'])
+
         body = {
             name.decode('utf-8'): json.loads(value[0].decode('utf-8'))
             for name, value in parse_qs(scope['query_string']).items()
         }
+
+        return await self._handle_sse(info, body)
+
+    async def handle_sse_post(
+            self,
+            scope: Scope,
+            info: Info,
+            matches: RouteMatches,
+            content: Content
+    ) -> HttpResponse:
+        """Handle a server sent event style direct subscription"""
+
+        logger.debug('SSE received POST subscription request: http_version=%s', scope['http_version'])
+
+        content = await text_reader(content)
+        body = json.loads(content)
+
+        return await self._handle_sse(info, body)
+
+    async def _handle_sse(
+            self,
+            info: Info,
+            body: Mapping[str, Any]
+    ) -> HttpResponse:
+        """Handle a server sent event style direct subscription"""
+
 
         result = cast(
             MapAsyncIterator,
@@ -265,7 +301,6 @@ class GraphQLController:
             )
         )
 
-        logger.debug('SSE received subscription request: http_version=%s', scope['http_version'])
 
         # Make an async iterator for the subscription results.
         async def send_events(zero_event: ZeroEvent):
@@ -280,7 +315,7 @@ class GraphQLController:
                         timeout=self.ping_interval
                 ):
                     if val is None:
-                        message = f'event: ping\ndata: {datetime.utcnow()}\n\n'
+                        message: str = f'event: ping\ndata: {datetime.utcnow()}\n\n'
                     else:
                         response = {
                             'data': val.data,

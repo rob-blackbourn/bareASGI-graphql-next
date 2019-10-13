@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <meta charset="utf-8">
     <title>GraphQL Request</title>
-  </head>
-  <body>
+    <script src="https://cdn.jsdelivr.net/npm/@barejs/sse-decoder@0.1.4/lib/index.min.js"></script>
+</head>
+
+<body>
     <h1>GraphQL Request</h1>
 
     <form id="message-form" action="#" method="post">
-      <textarea id="message" placeholder="Write your query here..." required></textarea>
-      <button type="submit">Send Query</button>
+        <textarea name="message" placeholder="Write your query here..." required rows="10" cols="100"></textarea><br>
+        <input type="radio" name="method" value="GET" checked>GET<br>
+        <input type="radio" name="method" value="POST">POST<br>
+        <button type="submit">Send Query</button>
     </form>
-    
+
     <div id="response">Response goes here...</div>
-    
+
     <h4>Example Query</h4>
 
     <p>query { latest { timestamp cpu { percent } } }</p>
@@ -49,11 +54,11 @@ query {
   }
 }
     </pre>
-    
+
     <h4>Example Subscription</h4>
-    
+
     <p>subscription { system { timestamp cpu { percent } } }</p>
-    
+
     <pre>
 subscription {
   system {
@@ -87,66 +92,136 @@ subscription {
 }    
     </pre>
 
-  <script language="javascript" type="text/javascript">
+    <script language="javascript" type="text/javascript">
 
-    window.onload = function() {
+        function makeWriteableEventStream(eventTarget) {
 
-      var form = document.getElementById('message-form')
-      var messageField = document.getElementById('message')
-      var responseField = document.getElementById("response")
-      var eventSource = null
+            return new WritableStream({
+                start(controller) {
+                    eventTarget.dispatchEvent(new Event('close'))
+                },
 
-      // Send a message when the form is submitted.
-      form.onsubmit = function(e) {
-        e.preventDefault()
-        
-        if (eventSource !== null && eventSource.readyState != 2) {
-          eventSource.close()
+                write(chunk, controller) {
+                    const type = chunk['type']
+                    const data = chunk
+                    eventTarget.dispatchEvent(new MessageEvent(chunk['type'], chunk))
+                },
+
+                close(controller) {
+                    eventTarget.dispatchEvent(new Event('close'))
+                },
+
+                abort(reason) {
+                    eventTarget.dispatchEvent(new CustomEvent('abort', { detail, reason }))
+                }
+            })
         }
 
-        // Retrieve the message from the textarea.
-        var query = messageField.value
+        function makeSseDecoder(url) {
+            const SseDecoder = window["barejs-sse-decoder"].SseDecoder
+            const decoder = new SseDecoder(url)
 
-        // Send the message
-        fetch('${sse_url}', {
-          method: 'POST',
-          mode: 'same-origin',
-          body: JSON.stringify({
-            query
-          })
-        })
-          .then(response => {
-            console.log(response)
-            if (response.status == 200) {
-              // This is a query result, so just show the data.
-              response.text()
-                .then(text => {
-                  responseField.innerHTML = text
+            return new TransformStream({
+                transform(chunk, controller) {
+                    const messages = decoder.decode(chunk)
+                    for (const message of messages) {
+                        controller.enqueue(message)
+                    }
+                }
+            })
+        }
+
+        function FetchEventTarget(input, init) {
+            const eventTarget = new EventTarget()
+            const textDecoder = new TextDecoder('utf-8')
+            const sseDecoder = makeSseDecoder(input)
+            const stream = makeWriteableEventStream(eventTarget)
+            fetch(input, init)
+                .then(response => {
+                    response.body
+                        .pipeThrough(new TextDecoderStream())
+                        .pipeThrough(sseDecoder)
+                        .pipeTo(stream)
                 })
                 .catch(error => {
-                  console.log(error)
+                    eventTarget.dispatchEvent(new CustomEvent('error', { detail: error }))
                 })
-            } else if (response.status == 201) {
-              // This is a subscription response. An endpoint is
-              // returned in the "Location" header which we can
-              // consume with an EventSource.
-              var location = response.headers.get('location')
-              eventSource = new EventSource(location)
-              eventSource.onmessage = function(event) {
-                responseField.innerHTML = event.data
-              }
-            } else {
-              throw new Error("Unhandled response")
+            return eventTarget
+        }
+
+        window.onload = function () {
+
+            var form = document.getElementById('message-form')
+            var responseField = document.getElementById("response")
+            var eventSource = null
+
+            // Send a message when the form is submitted.
+            form.onsubmit = function (e) {
+                e.preventDefault()
+
+                if (eventSource !== null && eventSource.readyState != 2) {
+                    eventSource.close()
+                }
+
+                // Retrieve the message from the textarea.
+                var formData = new FormData(form)
+                var method = formData.get('method')
+                var query = formData.get('message')
+                var body = JSON.stringify({ query })
+
+                // Send the message
+                fetch('${sse_url}', {
+                    method: 'POST',
+                    headers: new Headers({ 'allow': method }),
+                    mode: 'same-origin',
+                    body
+                })
+                    .then(response => {
+                        console.log(response)
+                        if (response.status == 200) {
+                            // This is a query result, so just show the data.
+                            response.text()
+                                .then(text => {
+                                    responseField.innerHTML = text
+                                })
+                                .catch(error => {
+                                    console.log(error)
+                                })
+                        } else if (response.status == 201) {
+                            // This is a subscription response. An endpoint is
+                            // returned in the "Location" header which we can
+                            // consume with an EventSource.
+                            var location = response.headers.get('location')
+
+                            if (method == 'GET') {
+                                eventSource = new EventSource(location)
+                                eventSource.onmessage = function (event) {
+                                    responseField.innerHTML = event.data
+                                }
+                            } else {
+                                eventSource = new FetchEventTarget(location, {
+                                    method: 'POST',
+                                    headers: new Headers({ 'allow': method }),
+                                    mode: 'same-origin',
+                                    body
+                                })
+                                eventSource.addEventListener('message', (event) => {
+                                    responseField.innerHTML = event.data
+                                })
+                            }
+                        } else {
+                            throw new Error("Unhandled response")
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error)
+                    })
+
+                return false
             }
-          })
-          .catch(error => {
-            console.error(error)
-          })
-        
-        return false
-      }
-    }  
-  
-  </script>     
-  </body>
+        }
+
+    </script>
+</body>
+
 </html>
