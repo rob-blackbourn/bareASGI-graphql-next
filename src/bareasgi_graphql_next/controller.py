@@ -42,6 +42,36 @@ from .utils import (
 
 logger = logging.getLogger(__name__)
 
+
+def _make_sse_message(val: Optional[graphql.ExecutionResult]) -> str:
+    if val is None:
+        return f'event: ping\ndata: {datetime.utcnow()}\n\n'
+
+    response = {
+        'data': val.data,
+        'errors': val.errors
+    }
+
+    return f'event: message\ndata: {json.dumps(response)}\n\n'
+
+def _make_json_message(val: Optional[graphql.ExecutionResult]) -> str:
+    if val is None:
+        message_type = 'ping'
+        message_details: Dict[str, Any] = {'timestamp': datetime.utcnow().isoformat()}
+    else:
+        message_type = 'message'
+        message_details = {
+            'data': val.data,
+            'errors': val.errors
+        }
+
+    return json.dumps(
+        {
+            'type': message_type,
+            'details': message_details
+        }
+    ) + '\n'
+
 class GraphQLController:
     """GraphQL Controller"""
 
@@ -91,12 +121,12 @@ class GraphQLController:
         )
         app.http_router.add(
             {'GET'},
-            path_prefix + '/sse-subscription',
+            path_prefix + '/subscriptions',
             wrap_middleware(rest_middleware, self.handle_sse_get)
         )
         app.http_router.add(
             {'POST', 'OPTION'},
-            path_prefix + '/sse-subscription',
+            path_prefix + '/subscriptions',
             wrap_middleware(rest_middleware, self.handle_sse_post)
         )
 
@@ -201,7 +231,7 @@ class GraphQLController:
                 scheme = scope['scheme']
                 host = get_host(scope).decode('utf-8')
                 method = header.find(b'allow', scope['headers'], b'GET')
-                path = self.path_prefix + '/sse-subscription'
+                path = self.path_prefix + '/subscriptions'
                 query_string = urlencode(
                     {
                         name.encode('utf-8'): json.dumps(value).encode('utf-8')
@@ -264,7 +294,7 @@ class GraphQLController:
             for name, value in parse_qs(scope['query_string']).items()
         }
 
-        return await self._handle_sse(info, body)
+        return await self._handle_sse(scope, info, body)
 
     async def handle_sse_post(
             self,
@@ -280,15 +310,18 @@ class GraphQLController:
         content = await text_reader(content)
         body = json.loads(content)
 
-        return await self._handle_sse(info, body)
+        return await self._handle_sse(scope, info, body)
 
     async def _handle_sse(
             self,
+            scope: Scope,
             info: Info,
             body: Mapping[str, Any]
     ) -> HttpResponse:
         """Handle a server sent event style direct subscription"""
 
+        accept = header.find(b'accept', scope['headers'], b'text/event-stream')
+        content_type = b'application/stream+json' if accept == b'application/json' else accept
 
         result = cast(
             MapAsyncIterator,
@@ -314,18 +347,15 @@ class GraphQLController:
                         self.cancellation_event,
                         timeout=self.ping_interval
                 ):
-                    if val is None:
-                        message: str = f'event: ping\ndata: {datetime.utcnow()}\n\n'
+                    print(val)
+                    if content_type == b'text/event-stream':
+                        yield _make_sse_message(val).encode('utf-8')
+                        # Give the ASGI server a nudge.
+                        yield b':\n\n'
                     else:
-                        response = {
-                            'data': val.data,
-                            'errors': val.errors
-                        }
-                        message = f'event: message\ndata: {json.dumps(response)}\n\n'
+                        yield _make_json_message(val).encode('utf-8')
+                        yield b'\n'
 
-                    yield message.encode('utf-8')
-                    # Give the ASGI server a nudge.
-                    yield ':\n\n'.encode('utf-8')
             except asyncio.CancelledError:
                 logger.debug("Cancelled SSE subscription")
             finally:
@@ -336,7 +366,8 @@ class GraphQLController:
 
         headers = [
             (b'cache-control', b'no-cache'),
-            (b'content-type', b'text/event-stream'),
+            # (b'content-type', b'text/event-stream'),
+            (b'content-type', content_type),
             (b'connection', b'keep-alive')
         ]
 
