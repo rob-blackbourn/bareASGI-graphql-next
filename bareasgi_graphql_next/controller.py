@@ -56,21 +56,12 @@ def _make_sse_message(val: Optional[graphql.ExecutionResult]) -> str:
 
 def _make_json_message(val: Optional[graphql.ExecutionResult]) -> str:
     if val is None:
-        message_type = 'ping'
-        message_details: Dict[str, Any] = {'timestamp': datetime.utcnow().isoformat()}
-    else:
-        message_type = 'message'
-        message_details = {
-            'data': val.data,
-            'errors': val.errors
-        }
+        return '\n'
 
-    return json.dumps(
-        {
-            'type': message_type,
-            'details': message_details
-        }
-    ) + '\n'
+    return json.dumps({
+        'data': val.data,
+        'errors': val.errors
+    }) + '\n'
 
 class GraphQLController:
     """GraphQL Controller"""
@@ -226,26 +217,28 @@ class GraphQLController:
             query_document = graphql.parse(query)
 
             if has_subscription(query_document):
-                # Handle a subscription by returning 201 (Created) with
-                # the url location of the subscription.
-                scheme = scope['scheme']
-                host = get_host(scope).decode('utf-8')
                 method = header.find(b'allow', scope['headers'], b'GET')
-                path = self.path_prefix + '/subscriptions'
-                query_string = urlencode(
-                    {
-                        name.encode('utf-8'): json.dumps(value).encode('utf-8')
-                        for name, value in body.items()
-                    }
-                )
-                location = f'{scheme}://{host}{path}'
                 if method == b'GET':
+                    # Handle a subscription by returning 201 (Created) with
+                    # the url location of the subscription.
+                    scheme = scope['scheme']
+                    host = get_host(scope).decode('utf-8')
+                    path = self.path_prefix + '/subscriptions'
+                    query_string = urlencode(
+                        {
+                            name.encode('utf-8'): json.dumps(value).encode('utf-8')
+                            for name, value in body.items()
+                        }
+                    )
+                    location = f'{scheme}://{host}{path}'
                     location += f'?{query_string}'
-                headers = [
-                    (b'access-control-expose-headers', b'location'),
-                    (b'location', location.encode('ascii'))
-                ]
-                return response_code.CREATED, headers
+                    headers = [
+                        (b'access-control-expose-headers', b'location'),
+                        (b'location', location.encode('ascii'))
+                    ]
+                    return response_code.CREATED, headers
+                else:
+                    return await self._handle_sse(scope, info, body)
             else:
                 # Handle a query
                 result = await graphql.graphql(
