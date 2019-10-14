@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "bareasgi-graphql-next"
-version = "3.6.0"
+version = "3.7.0"
 description = "GraphQL support for the bareASGI framework"
 authors = ["Rob Blackbourn <rob.blackbourn@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
 packages = [
-    { include = "bareasgi_graphql_next", from = "src" },
+    { include = "bareasgi_graphql_next" },
 ]
 repository = "https://github.com/rob-blackbourn/bareasgi-graphql-next"
 
