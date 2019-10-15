@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bareasgi-graphql-next"
-version = "3.8.0"
+version = "3.9.0"
 description = "GraphQL support for the bareASGI framework"
 authors = ["Rob Blackbourn <rob.blackbourn@gmail.com>"]
 license = "Apache-2.0"
@@ -14,7 +14,8 @@ repository = "https://github.com/rob-blackbourn/bareasgi-graphql-next"
 python = "^3.7"
 bareASGI = "^3.0"
 bareutils = "^3.0"
-graphql-core-next = "^1.0"
+graphql-core = {version = "^3.0.0a0", allows-prereleases = true}
+
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"

@@ -280,7 +280,10 @@ class GraphQLController:
     ) -> HttpResponse:
         """Handle a server sent event style direct subscription"""
 
-        logger.debug('SSE received GET subscription request: http_version=%s', scope['http_version'])
+        logger.debug(
+            'SSE received GET subscription request: http_version=%s',
+            scope['http_version']
+        )
 
         body = {
             name.decode('utf-8'): json.loads(value[0].decode('utf-8'))
@@ -298,7 +301,10 @@ class GraphQLController:
     ) -> HttpResponse:
         """Handle a server sent event style direct subscription"""
 
-        logger.debug('SSE received POST subscription request: http_version=%s', scope['http_version'])
+        logger.debug(
+            'SSE received POST subscription request: http_version=%s',
+            scope['http_version']
+        )
 
         content = await text_reader(content)
         body = json.loads(content)
