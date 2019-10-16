@@ -397,3 +397,10 @@ This can then be called like this:
     // Later ...
     subscription.unsubscribe()
 
+Prebuilt Clients
+################
+
+There are some prebuilt javascript clients:
+
+* `barejs-graphql-client <https://github.com/rob-blackbourn/barejs-graphql-client>`_ for callback style clients.
+* `barejs-graphql-observable <https://github.com/rob-blackbourn/barejs-graphql-observable>`_ for observable style clients using `rxjs <https://rxjs-dev.firebaseapp.com/api>`_.
