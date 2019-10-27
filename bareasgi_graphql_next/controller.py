@@ -35,7 +35,6 @@ from .websocket_handler import GraphQLWebSocketHandler
 from .utils import (
     cancellable_aiter,
     has_subscription,
-    get_host,
     wrap_middleware,
     ZeroEvent
 )
@@ -54,6 +53,7 @@ def _make_sse_message(val: Optional[graphql.ExecutionResult]) -> str:
 
     return f'event: message\ndata: {json.dumps(response)}\n\n'
 
+
 def _make_json_message(val: Optional[graphql.ExecutionResult]) -> str:
     if val is None:
         return '\n'
@@ -62,6 +62,7 @@ def _make_json_message(val: Optional[graphql.ExecutionResult]) -> str:
         'data': val.data,
         'errors': val.errors
     }) + '\n'
+
 
 class GraphQLController:
     """GraphQL Controller"""
@@ -149,7 +150,7 @@ class GraphQLController:
     ) -> HttpResponse:
         """Render the Graphiql view"""
 
-        host = get_host(scope).decode('ascii')
+        host = header.find(b'host', scope['headers'])
         body = make_template(
             host,
             self.path_prefix + '/graphql',
@@ -191,7 +192,8 @@ class GraphQLController:
                 name: value[0]
                 for name, value in parse_multipart(
                     io.StringIO(await text_reader(content)),
-                    {key.decode('utf-8'): val for key, val in parameters.items()}
+                    {key.decode('utf-8'): val for key,
+                     val in parameters.items()}
                 ).items()
             }
         else:
@@ -222,7 +224,8 @@ class GraphQLController:
                     # Handle a subscription by returning 201 (Created) with
                     # the url location of the subscription.
                     scheme = scope['scheme']
-                    host = get_host(scope).decode('utf-8')
+                    host = header.find(
+                        b'host', scope['headers'], b'localhost').decode()
                     path = self.path_prefix + '/subscriptions'
                     query_string = urlencode(
                         {
@@ -252,7 +255,8 @@ class GraphQLController:
 
                 response: Dict[str, Any] = {'data': result.data}
                 if result.errors:
-                    response['errors'] = [error.formatted for error in result.errors]
+                    response['errors'] = [
+                        error.formatted for error in result.errors]
 
                 text = json.dumps(response)
                 headers = [
@@ -333,8 +337,8 @@ class GraphQLController:
             )
         )
 
-
         # Make an async iterator for the subscription results.
+
         async def send_events(zero_event: ZeroEvent):
             logger.debug('Started SSE subscription')
 
@@ -361,7 +365,6 @@ class GraphQLController:
                 zero_event.decrement()
 
             logger.debug('Stopped SSE subscription')
-
 
         headers = [
             (b'cache-control', b'no-cache'),

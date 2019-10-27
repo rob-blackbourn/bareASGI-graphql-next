@@ -6,7 +6,6 @@ import asyncio
 from asyncio import Event
 from typing import AsyncIterator, Optional, Set, Any
 
-import bareutils.header as header
 import graphql
 
 from baretypes import (
@@ -80,17 +79,8 @@ async def cancellable_aiter(
                 pending.add(sleep_task)
 
 
-
 def _is_http_2(scope: Scope) -> bool:
     return scope['http_version'] in ('2', '2.0')
-
-
-def get_host(scope: Scope) -> bytes:
-    """Get the host from the scope"""
-    if _is_http_2(scope):
-        return header.find(b':authority', scope['headers'])
-    else:
-        return header.find(b'host', scope['headers'])
 
 
 def _is_subscription(definition: graphql.DefinitionNode) -> bool:
@@ -110,6 +100,7 @@ def has_subscription(document: graphql.DocumentNode) -> bool:
     """
     return any(_is_subscription(definition) for definition in document.definitions)
 
+
 def wrap_middleware(
         middleware: Optional[HttpMiddlewareCallback],
         handler: HttpRequestCallback
@@ -120,10 +111,11 @@ def wrap_middleware(
     else:
         return mw(middleware, handler=handler)
 
+
 class ZeroEvent:
     """An event which blocks when not zero"""
 
-    def __init__(self)-> None:
+    def __init__(self) -> None:
         self._event = Event()
         self._count = 0
         self._event.set()
