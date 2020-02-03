@@ -1,0 +1,41 @@
+site_name: bareASGI-graphql-next
+site_description: GraphQL support for bareASGI
+site_dir: docs
+
+docs_dir: documentation
+
+repo_name: rob-blackbourn/bareASGI-graphql-next
+repo_url: https://github.com/rob-blackbourn/bareASGI-graphql-next
+edit_uri: ""
+
+theme:
+    name: 'material'
+    logo: images/peach.svg
+    favicon: images/favicon.ico
+
+nav:
+  - index.md
+  - User Guide:
+    - user-guide/installation.md
+    - user-guide/usage.md
+  - API:
+    - bareasgi_graphql_next: api/bareasgi_graphql_next.md
+  
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - jetblack_markdown.autodoc:
+      class_from_init: true
+      ignore_dunder: true
+      ignore_private: true
+      ignore_all: false
+      ignore_inherited: false
+      follow_module_tree: false
+      prefer_docstring: true
+      template_folder: templates
+  - toc:
+      permalink: true
+
+extra_css:
+    - css/custom.css

@@ -90,15 +90,14 @@ class GraphQLController:
             view_middleware: Optional[HttpMiddlewareCallback] = None
     ):
         """Add the routes
-
-        :param app: The ASGI application
-        :type app: Application
-        :param path_prefix: The path prefix
-        :type path_prefix: str
-        :param rest_middleware: The rest middleware, defaults to None
-        :type rest_middleware: Optional[HttpMiddlewareCallback], optional
-        :param view_middleware: The view middleware, defaults to None
-        :type view_middleware: Optional[HttpMiddlewareCallback], optional
+        
+        Args:
+            app (Application): The ASGI application
+            path_prefix (str, optional): The path prefix. Defaults to ''.
+            rest_middleware (Optional[HttpMiddlewareCallback], optional): The
+                rest middleware. Defaults to None.
+            view_middleware (Optional[HttpMiddlewareCallback], optional): The
+                view middleware. Defaults to None.
         """
         # Add the REST route
         app.http_router.add(
@@ -148,7 +147,18 @@ class GraphQLController:
             matches: RouteMatches,
             content: Content
     ) -> HttpResponse:
-        """Render the Graphiql view"""
+        """Render the Graphiql view
+
+        
+        Args:
+            scope (Scope): The ASGI scope
+            info (Info): The user info
+            matches (RouteMatches): The route matches
+            content (Content): The request body
+        
+        Returns:
+            HttpResponse: [description]
+        """
 
         host = header.find(b'host', scope['headers'])
         body = make_template(
@@ -169,7 +179,14 @@ class GraphQLController:
             matches: RouteMatches,
             web_socket: WebSocket
     ) -> None:
-        """Handle a websocket subscription"""
+        """Handle a websocket subscription
+        
+        Args:
+            scope (Scope): The ASGI scope
+            info (Info): The application info
+            matches (RouteMatches): The route matches
+            web_socket (WebSocket): The web socket to interact with
+        """
         await self.ws_subscription_handler(scope, info, matches, web_socket)
 
     @classmethod
@@ -207,7 +224,17 @@ class GraphQLController:
             matches: RouteMatches,
             content: Content
     ) -> HttpResponse:
-        """A request handler for graphql queries"""
+        """A request handler for graphql queries
+        
+        Args:
+            scope (Scope): The ASGI scope
+            info (Info): The application info object
+            matches (RouteMatches): The route matches
+            content (Content): The request body
+        
+        Returns:
+            HttpResponse: The HTTP response to the query request
+        """
 
         try:
             body = await self._get_query_document(scope['headers'], content)
@@ -282,7 +309,17 @@ class GraphQLController:
             matches: RouteMatches,
             content: Content
     ) -> HttpResponse:
-        """Handle a server sent event style direct subscription"""
+        """Handle a server sent event style direct subscription
+        
+        Args:
+            scope (Scope): The ASGI scope
+            info (Info): The application info object
+            matches (RouteMatches): The route matches
+            content (Content): The request body
+        
+        Returns:
+            HttpResponse: The streaming response
+        """
 
         logger.debug(
             'SSE received GET subscription request: http_version=%s',
@@ -303,7 +340,17 @@ class GraphQLController:
             matches: RouteMatches,
             content: Content
     ) -> HttpResponse:
-        """Handle a server sent event style direct subscription"""
+        """Handle a server sent event style direct subscription
+        
+        Args:
+            scope (Scope): The ASGI scope
+            info (Info): The application info object
+            matches (RouteMatches): The route matches
+            content (Content): The request body
+        
+        Returns:
+            HttpResponse: A stream response
+        """
 
         logger.debug(
             'SSE received POST subscription request: http_version=%s',

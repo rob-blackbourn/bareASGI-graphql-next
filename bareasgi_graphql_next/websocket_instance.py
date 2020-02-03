@@ -59,10 +59,12 @@ class GraphQLWebSocketHandlerInstance:
 
     async def start(self, subprotocols: List[str]):
         """Start the WebSocket connection
-
-        :param subprotocols: Optional sub protocols
-        :type subprotocols: List[str]
-        :raises ProtocolError: If the protocol is not supported
+        
+        Args:
+            subprotocols (List[str]): Optional sub protocols
+        
+        Raises:
+            ProtocolError: If the protocol is not supported
         """
         if WS_PROTOCOL not in subprotocols:
             raise ProtocolError(f"Expected subprotocol '{WS_PROTOCOL}")

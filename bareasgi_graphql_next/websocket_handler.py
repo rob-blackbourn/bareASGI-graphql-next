@@ -16,6 +16,11 @@ class GraphQLWebSocketHandler:
     """GraphQL WebSocket handler"""
 
     def __init__(self, schema: graphql.GraphQLSchema):
+        """GraphQL WebSocket handler
+        
+        Args:
+            schema (graphql.GraphQLSchema): The schema
+        """
         self.schema = schema
 
     async def __call__(

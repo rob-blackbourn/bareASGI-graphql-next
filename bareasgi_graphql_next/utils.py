@@ -25,12 +25,17 @@ async def cancellable_aiter(
         cancel_pending: bool = True,
         timeout: Optional[float] = None
 ) -> AsyncIterator:
-    """Create a cancellable async iterator.
-
-    :param async_iterator: The async iterator to wrap
-    :param cancellation_event: The asyncio Event to controll cancellation.
-    :param cancel_pending: If True cancel pending tasks, otherwise wait them.
-    :return: The wrapped async iterator
+    """[summary]
+    
+    Args:
+        async_iterator (MapAsyncIterator): The iterator to use
+        cancellation_event (Event): A cancellable event
+        cancel_pending (bool, optional): If True cancel pendings. Defaults to
+            True.
+        timeout (Optional[float], optional): A timeout. Defaults to None.
+    
+    Returns:
+        AsyncIterator: The async iterator
     """
     result_iter = async_iterator.__aiter__()
     cancellation_task = asyncio.create_task(cancellation_event.wait())
@@ -91,12 +96,13 @@ def _is_subscription(definition: graphql.DefinitionNode) -> bool:
 
 
 def has_subscription(document: graphql.DocumentNode) -> bool:
-    """Find if a document has a subscription
-
-    :param document: The GraphQL query document
-    :type document: graphql.DocumentNode
-    :return: True if the document contains a subscription
-    :rtype: bool
+    """Check if a document has a subscription
+    
+    Args:
+        document (graphql.DocumentNode): The document
+    
+    Returns:
+        bool: True if the document contains a subscription
     """
     return any(_is_subscription(definition) for definition in document.definitions)
 
@@ -116,15 +122,16 @@ class ZeroEvent:
     """An event which blocks when not zero"""
 
     def __init__(self) -> None:
+        """An event which blocks when not zero"""
         self._event = Event()
         self._count = 0
         self._event.set()
 
     def increment(self) -> int:
         """Increment the count
-
-        :return: The current count
-        :rtype: int
+        
+        Returns:
+            int: The new count
         """
         self._count += 1
         self._event.clear()
@@ -132,9 +139,9 @@ class ZeroEvent:
 
     def decrement(self) -> int:
         """Decrement the count
-
-        :return: The current count
-        :rtype: int
+        
+        Returns:
+            int: The decremented count
         """
         assert self._count > 0, "Count cannot go below zero"
         self._count -= 1
@@ -148,9 +155,9 @@ class ZeroEvent:
 
     @property
     def count(self) -> int:
-        """The current count
-
-        :return: The current count
-        :rtype: int
+        """Get the current count
+        
+        Returns:
+            int: The current count
         """
         return self._count

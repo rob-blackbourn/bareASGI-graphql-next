@@ -29,17 +29,20 @@ def add_graphql_next(
         ping_interval: float = 10
 ) -> None:
     """Add graphql support to an bareASGI application.
-
-    :param app: The bareASGI application.
-    :param schema: The GraphQL schema to use.
-    :param path_prefix: An optional path prefix from which to provide endpoints.
-    :param rest_middleware: Middleware for the rest end points.
-    :param view_middleware: Middleware from the GraphiQL end point.
-    :param graphql_middleware: Middleware for graphql-core-next.
-    :param subscription_expiry: The time to wait before abandoning an unused subscription.
-    :return: Returns the constructed controller.
+    
+    Args:
+        app (Application): The bareASGI application.
+        schema (GraphQLSchema): The GraphQL schema to use.
+        path_prefix (str, optional): An optional path prefix from which to
+            provide endpoints. Defaults to ''.
+        rest_middleware (Optional[HttpMiddlewareCallback], optional): Middleware
+            for the rest end points. Defaults to None.
+        view_middleware (Optional[HttpMiddlewareCallback], optional): Middleware
+            for the GraphiQL end point. Defaults to None.
+        graphql_middleware ([type], optional): Middleware for graphql-core-next.
+            Defaults to None.
+        ping_interval (float, optional): The time to wait before abandoning an unused subscription. Defaults to 10.
     """
-
     # pylint: disable=unused-argument
     async def start_graphql(scope: Scope, info: Info, request) -> None:
         """Start the GraphQL controller"""
