@@ -1,6 +1,6 @@
 # bareASGI-graphql-next
 
-Graphql support for [bareASGI](http://github.com/rob-blackbourn/bareasgi) (read the [documentation](https://bareasgi-graphql-next.readthedocs.io/en/latest/))
+Graphql support for [bareASGI](http://github.com/rob-blackbourn/bareASGI) (read the [documentation](https://rob-blackbourn.github.io/bareASGI-graphql-next/))
 
 The controller provides a GraphQL GET and POST route, a WebSocket subscription server, and a Graphiql view.
 
