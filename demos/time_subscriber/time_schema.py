@@ -13,18 +13,14 @@ from graphql import (
 
 def query_time(_root, _info):
     """Query time is an iso string"""
-    print('Resolving time')
     return datetime.now().isoformat()
 
 
 async def subscribe_time(_root, _info):
     """Start the time subscription"""
-    print('Subscribing time')
     while True:
         yield {"time": datetime.now().isoformat()}
-        print('Sleeping')
         await asyncio.sleep(1)
-    print('Unsubscribing time')
 
 # pylint: disable=invalid-name
 schema = GraphQLSchema(
