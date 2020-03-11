@@ -2,6 +2,7 @@
 GraphQL WebSocket instance
 """
 
+from abc import ABCMeta, abstractmethod
 import asyncio
 import json
 import logging
@@ -15,11 +16,13 @@ from typing import (
     Tuple,
     Union,
     List,
-    Set
+    Set,
+    cast
 )
 
 from baretypes import Info, WebSocket
 import graphql
+from graphql.subscription.map_async_iterator import MapAsyncIterator
 
 from .utils import has_subscription
 
@@ -47,11 +50,10 @@ class ProtocolError(Exception):
 Id = Union[str, int]
 
 
-class GraphQLWebSocketHandlerInstance:
+class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
     """A GraphQL WebSocket handler instance"""
 
-    def __init__(self, schema: graphql.GraphQLSchema, web_socket: WebSocket, info: Info) -> None:
-        self.schema = schema
+    def __init__(self, web_socket: WebSocket, info: Info) -> None:
         self.web_socket = web_socket
         self.info = info
         self._subscriptions: MutableMapping[Id, asyncio.Future] = {}
@@ -59,10 +61,10 @@ class GraphQLWebSocketHandlerInstance:
 
     async def start(self, subprotocols: List[str]):
         """Start the WebSocket connection
-        
+
         Args:
             subprotocols (List[str]): Optional sub protocols
-        
+
         Raises:
             ProtocolError: If the protocol is not supported
         """
@@ -161,6 +163,42 @@ class GraphQLWebSocketHandlerInstance:
     async def _on_connection_terminate(self):
         await self.web_socket.close(WS_INTERNAL_ERROR)
 
+    @abstractmethod
+    async def subscribe(
+            self,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str]
+    ) -> MapAsyncIterator:
+        """Execute a subscription.
+
+        Args:
+            query (str): The subscription query.
+            variables (Optional[Dict[str, Any]]): Optional variables.
+            operation_name (Optional[str]): An optional operation name.
+
+        Returns:
+            MapAsyncIterator: An asynchronous iterator of the results.
+        """
+
+    @abstractmethod
+    async def query(
+            self,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str]
+    ) -> graphql.ExecutionResult:
+        """Execute a query
+
+        Args:
+            query (str): The subscription query.
+            variables (Optional[Dict[str, Any]]): Optional variables.
+            operation_name (Optional[str]): An optional operation name.
+
+        Returns:
+            graphql.ExecutionResult: The query results.
+        """
+
     async def _on_start(self, id_: Optional[Id], payload: Optional[Union[list, dict]]):
         try:
             # An id is required for a start operation.
@@ -171,38 +209,36 @@ class GraphQLWebSocketHandlerInstance:
                 await self._unsubscribe(id_)
                 del self._subscriptions[id_]
 
-            query, variable_values, operation_name = self._parse_start_payload(payload)
+            query, variable_values, operation_name = self._parse_start_payload(
+                payload)
 
             document = graphql.parse(query)
             # noinspection PyUnresolvedReferences
             if has_subscription(document):
-                result = await graphql.subscribe(
-                    self.schema,
-                    document=document,
-                    context_value=self.info,
-                    variable_values=variable_values,
-                    operation_name=operation_name
+                result: Union[MapAsyncIterator, graphql.ExecutionResult] = await self.subscribe(
+                    query,
+                    variable_values,
+                    operation_name
                 )
             else:
-                result = await graphql.graphql(
-                    self.schema,
-                    source=graphql.Source(query),
-                    context_value=self.info,
-                    variable_values=variable_values,
-                    operation_name=operation_name
+                result = await self.query(
+                    query,
+                    variable_values,
+                    operation_name
                 )
 
-            if not isinstance(result, AsyncIterator):
+            if isinstance(result, graphql.ExecutionResult):
                 await self._send_execution_result(id_, result)
                 return True
 
             self._add_subscription(id_, result)
 
-        except Exception as error: # pylint: disable=broad-except
+        except Exception as error:  # pylint: disable=broad-except
             await self._send_error(GQL_ERROR, id_, error)
 
     def _add_subscription(self, id_: Id, result: AsyncIterator) -> None:
-        self._subscriptions[id_] = asyncio.create_task(self._process_subscription(id_, result))
+        self._subscriptions[id_] = asyncio.create_task(
+            self._process_subscription(id_, result))
 
     def _remove_subscription(self, future: asyncio.Future) -> None:
         id_ = next(k for k, v in self._subscriptions.items() if v == future)
@@ -250,7 +286,8 @@ class GraphQLWebSocketHandlerInstance:
             result["data"] = execution_result.data
 
         if execution_result.errors:
-            result["errors"] = [graphql.format_error(error) for error in execution_result.errors]
+            result["errors"] = [graphql.format_error(
+                error) for error in execution_result.errors]
 
         await self.web_socket.send(self._to_message(GQL_DATA, id_, result))
 
@@ -279,14 +316,54 @@ class GraphQLWebSocketHandlerInstance:
 
         query = payload.get('query')
         if not isinstance(query, str):
-            raise ProtocolError("required 'query' field must be string in 'payload'.")
+            raise ProtocolError(
+                "required 'query' field must be string in 'payload'.")
 
         variable_values = payload.get('variables')
         if not (variable_values is None or isinstance(variable_values, dict)):
-            raise ProtocolError("optional 'variables' field must be object? in 'payload'.")
+            raise ProtocolError(
+                "optional 'variables' field must be object? in 'payload'.")
 
         operation_name = payload.get('operationName')
         if not (operation_name is None or isinstance(operation_name, str)):
-            raise ProtocolError("optional 'operationName' field must be str? in 'payload'.")
+            raise ProtocolError(
+                "optional 'operationName' field must be str? in 'payload'.")
 
         return query, variable_values, operation_name
+
+
+class GraphQLWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
+    """A GraphQL WebSocket handler instance"""
+
+    def __init__(self, schema: graphql.GraphQLSchema, web_socket: WebSocket, info: Info) -> None:
+        super().__init__(web_socket, info)
+        self.schema = schema
+
+    async def subscribe(
+            self,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str]
+    ) -> MapAsyncIterator:
+        result = await graphql.subscribe(
+            schema=self.schema,
+            document=graphql.parse(query),
+            variable_values=variables,
+            operation_name=operation_name,
+            context_value=self.info
+        )
+        return cast(MapAsyncIterator, result)
+
+    async def query(
+            self,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str]
+    ) -> graphql.ExecutionResult:
+        return await graphql.graphql(
+            schema=self.schema,
+            source=graphql.Source(query),  # source=query,
+            variable_values=variables,
+            operation_name=operation_name,
+            context_value=self.info
+        )

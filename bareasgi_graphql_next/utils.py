@@ -26,14 +26,14 @@ async def cancellable_aiter(
         timeout: Optional[float] = None
 ) -> AsyncIterator:
     """[summary]
-    
+
     Args:
         async_iterator (MapAsyncIterator): The iterator to use
         cancellation_event (Event): A cancellable event
         cancel_pending (bool, optional): If True cancel pendings. Defaults to
             True.
         timeout (Optional[float], optional): A timeout. Defaults to None.
-    
+
     Returns:
         AsyncIterator: The async iterator
     """
@@ -97,10 +97,10 @@ def _is_subscription(definition: graphql.DefinitionNode) -> bool:
 
 def has_subscription(document: graphql.DocumentNode) -> bool:
     """Check if a document has a subscription
-    
+
     Args:
         document (graphql.DocumentNode): The document
-    
+
     Returns:
         bool: True if the document contains a subscription
     """
@@ -129,7 +129,7 @@ class ZeroEvent:
 
     def increment(self) -> int:
         """Increment the count
-        
+
         Returns:
             int: The new count
         """
@@ -139,7 +139,7 @@ class ZeroEvent:
 
     def decrement(self) -> int:
         """Decrement the count
-        
+
         Returns:
             int: The decremented count
         """
@@ -156,7 +156,7 @@ class ZeroEvent:
     @property
     def count(self) -> int:
         """Get the current count
-        
+
         Returns:
             int: The current count
         """

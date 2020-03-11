@@ -2,6 +2,7 @@
 GraphQL controller
 """
 
+from abc import ABCMeta, abstractmethod
 import asyncio
 import io
 import json
@@ -64,23 +65,60 @@ def _make_json_message(val: Optional[graphql.ExecutionResult]) -> str:
     }) + '\n'
 
 
-class GraphQLController:
-    """GraphQL Controller"""
+class GraphQLControllerBase(metaclass=ABCMeta):
+    """GraphQL Controller Base"""
 
     def __init__(
             self,
-            schema: GraphQLSchema,
             path_prefix: str = '',
             middleware=None,
             ping_interval: float = 10
     ) -> None:
-        self.schema = schema
         self.path_prefix = path_prefix
         self.middleware = middleware
         self.ping_interval = ping_interval
-        self.ws_subscription_handler = GraphQLWebSocketHandler(schema)
         self.cancellation_event = asyncio.Event()
         self.subscription_count = ZeroEvent()
+
+    @abstractmethod
+    async def subscribe(
+            self,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str],
+            info: Info
+    ) -> MapAsyncIterator:
+        """Execute a subscription.
+
+        Args:
+            query (str): The subscription query.
+            variables (Optional[Dict[str, Any]]): Optional variables.
+            operation_name (Optional[str]): An optional operation name.
+            info (Info): The application info.
+
+        Returns:
+            MapAsyncIterator: An asynchronous iterator of the results.
+        """
+
+    @abstractmethod
+    async def query(
+            self,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str],
+            info: Info
+    ) -> graphql.ExecutionResult:
+        """Execute a query
+
+        Args:
+            query (str): The subscription query.
+            variables (Optional[Dict[str, Any]]): Optional variables.
+            operation_name (Optional[str]): An optional operation name.
+            info (Info): The application info.
+
+        Returns:
+            graphql.ExecutionResult: The query results.
+        """
 
     def add_routes(
             self,
@@ -90,7 +128,7 @@ class GraphQLController:
             view_middleware: Optional[HttpMiddlewareCallback] = None
     ):
         """Add the routes
-        
+
         Args:
             app (Application): The ASGI application
             path_prefix (str, optional): The path prefix. Defaults to ''.
@@ -124,7 +162,7 @@ class GraphQLController:
         # Add the subscription route
         app.ws_router.add(
             path_prefix + '/subscriptions',
-            self.handle_subscription
+            self.handle_websocket_subscription
         )
 
         # Add Graphiql
@@ -149,13 +187,13 @@ class GraphQLController:
     ) -> HttpResponse:
         """Render the Graphiql view
 
-        
+
         Args:
             scope (Scope): The ASGI scope
             info (Info): The user info
             matches (RouteMatches): The route matches
             content (Content): The request body
-        
+
         Returns:
             HttpResponse: [description]
         """
@@ -172,7 +210,8 @@ class GraphQLController:
         ]
         return response_code.OK, headers, text_writer(body)
 
-    async def handle_subscription(
+    @abstractmethod
+    async def handle_websocket_subscription(
             self,
             scope: Scope,
             info: Info,
@@ -180,14 +219,13 @@ class GraphQLController:
             web_socket: WebSocket
     ) -> None:
         """Handle a websocket subscription
-        
+
         Args:
             scope (Scope): The ASGI scope
             info (Info): The application info
             matches (RouteMatches): The route matches
             web_socket (WebSocket): The web socket to interact with
         """
-        await self.ws_subscription_handler(scope, info, matches, web_socket)
 
     @classmethod
     async def _get_query_document(
@@ -225,13 +263,13 @@ class GraphQLController:
             content: Content
     ) -> HttpResponse:
         """A request handler for graphql queries
-        
+
         Args:
             scope (Scope): The ASGI scope
             info (Info): The application info object
             matches (RouteMatches): The route matches
             content (Content): The request body
-        
+
         Returns:
             HttpResponse: The HTTP response to the query request
         """
@@ -271,13 +309,11 @@ class GraphQLController:
                     return await self._handle_sse(scope, info, body)
             else:
                 # Handle a query
-                result = await graphql.graphql(
-                    schema=self.schema,
-                    source=graphql.Source(query),  # source=query,
-                    variable_values=variables,
-                    operation_name=operation_name,
-                    context_value=info,
-                    middleware=self.middleware
+                result = await self.query(
+                    query,
+                    variables,
+                    operation_name,
+                    info
                 )
 
                 response: Dict[str, Any] = {'data': result.data}
@@ -310,13 +346,13 @@ class GraphQLController:
             content: Content
     ) -> HttpResponse:
         """Handle a server sent event style direct subscription
-        
+
         Args:
             scope (Scope): The ASGI scope
             info (Info): The application info object
             matches (RouteMatches): The route matches
             content (Content): The request body
-        
+
         Returns:
             HttpResponse: The streaming response
         """
@@ -341,13 +377,13 @@ class GraphQLController:
             content: Content
     ) -> HttpResponse:
         """Handle a server sent event style direct subscription
-        
+
         Args:
             scope (Scope): The ASGI scope
             info (Info): The application info object
             matches (RouteMatches): The route matches
             content (Content): The request body
-        
+
         Returns:
             HttpResponse: A stream response
         """
@@ -373,15 +409,11 @@ class GraphQLController:
         accept = header.find(b'accept', scope['headers'], b'text/event-stream')
         content_type = b'application/stream+json' if accept == b'application/json' else accept
 
-        result = cast(
-            MapAsyncIterator,
-            await graphql.subscribe(
-                schema=self.schema,
-                document=graphql.parse(body['query']),
-                variable_values=body.get('variables'),
-                operation_name=body.get('operationName'),
-                context_value=info
-            )
+        result = await self.subscribe(
+            body['query'],
+            body.get('variables'),
+            body.get('operationName'),
+            info
         )
 
         # Make an async iterator for the subscription results.
@@ -421,3 +453,75 @@ class GraphQLController:
         ]
 
         return response_code.OK, headers, send_events(self.subscription_count)
+
+
+class GraphQLController(GraphQLControllerBase):
+    """GraphQL Controller"""
+
+    def __init__(
+            self,
+            schema: GraphQLSchema,
+            path_prefix: str = '',
+            middleware=None,
+            ping_interval: float = 10
+    ) -> None:
+        """Create a GraphQL controller
+
+        Args:
+            schema (GraphQLSchema): The Graphql schema
+            path_prefix (str, optional): The path prefix. Defaults to ''.
+            middleware ([type], optional): The middleware. Defaults to None.
+            ping_interval (float, optional): The WebSocket ping interval. Defaults to 10.
+        """
+        super().__init__(path_prefix, middleware, ping_interval)
+        self.schema = schema
+        self.ws_subscription_handler = GraphQLWebSocketHandler(schema)
+
+    async def subscribe(
+            self,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str],
+            info: Info
+    ) -> MapAsyncIterator:
+        result = await graphql.subscribe(
+            schema=self.schema,
+            document=graphql.parse(query),
+            variable_values=variables,
+            operation_name=operation_name,
+            context_value=info
+        )
+        return cast(MapAsyncIterator, result)
+
+    async def query(
+            self,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str],
+            info: Info
+    ) -> graphql.ExecutionResult:
+        return await graphql.graphql(
+            schema=self.schema,
+            source=graphql.Source(query),  # source=query,
+            variable_values=variables,
+            operation_name=operation_name,
+            context_value=info,
+            middleware=self.middleware
+        )
+
+    async def handle_websocket_subscription(
+            self,
+            scope: Scope,
+            info: Info,
+            matches: RouteMatches,
+            web_socket: WebSocket
+    ) -> None:
+        """Handle a websocket subscription
+
+        Args:
+            scope (Scope): The ASGI scope
+            info (Info): The application info
+            matches (RouteMatches): The route matches
+            web_socket (WebSocket): The web socket to interact with
+        """
+        await self.ws_subscription_handler(scope, info, matches, web_socket)
