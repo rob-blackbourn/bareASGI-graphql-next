@@ -17,10 +17,11 @@ nav:
   - index.md
   - User Guide:
     - user-guide/installation.md
-    - user-guide/usage.md
+    - user-guide/getting-started.md
     - user-guide/clients.md
   - API:
     - bareasgi_graphql_next: api/bareasgi_graphql_next.md
+    - bareasgi_graphene: api/bareasgi_graphene.md
   
 markdown_extensions:
   - admonition
