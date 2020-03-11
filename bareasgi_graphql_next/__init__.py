@@ -1,7 +1,7 @@
 """bareASGI-graphql-next"""
 
-from .controller import GraphQLController
-from .helpers import add_graphql_next
+from .graphql.controller import GraphQLController
+from .graphql.helpers import add_graphql_next
 
 __all__ = [
     'GraphQLController',
