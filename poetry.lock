@@ -702,7 +702,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 graphene = ["jetblack-graphene"]
 
 [metadata]
-content-hash = "bc953c7ec64722a5a6ccf9ced4bcc78f7f8c1298f1d46dee4d2f787559c43d52"
+content-hash = "19011cba7286cb6ab8e65d179d65f59f39b71f59eed9863d758db9c39c7ecbb1"
 python-versions = "^3.7"
 
 [metadata.files]
