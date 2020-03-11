@@ -372,6 +372,39 @@
 
 <span class="n">uvicorn</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9009</span><span class="p">)</span>
 </code></pre></div>
+
+
+<p>For graphene the utility function <code>add_graphene</code> is provided.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span> <span class="nn">bareasgi</span> <span class="kn">import</span> <span class="n">Application</span>
+<span class="kn">from</span> <span class="nn">bareasgi_graphql_next.graphene</span> <span class="kn">import</span> <span class="n">add_graphene</span>
+<span class="kn">from</span> <span class="nn">graphene</span> <span class="kn">import</span> <span class="n">ObjectType</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">Field</span>
+<span class="kn">import</span> <span class="nn">uvicorn</span>
+
+<span class="c1"># All schema require a query.</span>
+<span class="k">class</span> <span class="nc">Query</span><span class="p">(</span><span class="n">ObjectType</span><span class="p">):</span>
+    <span class="n">hello</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">resolve_hello</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;Hello, world!&#39;</span>
+
+<span class="k">class</span> <span class="nc">Subscription</span><span class="p">(</span><span class="n">ObjectType</span><span class="p">):</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="nf">subscribe_time</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="p">{</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()}</span>
+            <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">SCHEMA</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">Query</span><span class="p">,</span> <span class="n">subscription</span><span class="o">=</span><span class="n">Subscription</span><span class="p">)</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Application</span><span class="p">()</span>
+<span class="n">add_graphene</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">SCHEMA</span><span class="p">)</span>
+
+<span class="n">uvicorn</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9009</span><span class="p">)</span>
+</code></pre></div>
                 
                   
                 
