@@ -18,6 +18,7 @@ nav:
   - User Guide:
     - user-guide/installation.md
     - user-guide/usage.md
+    - user-guide/clients.md
   - API:
     - bareasgi_graphql_next: api/bareasgi_graphql_next.md
   
@@ -33,7 +34,6 @@ markdown_extensions:
       ignore_inherited: false
       follow_module_tree: false
       prefer_docstring: true
-      template_folder: templates
   - toc:
       permalink: true
 

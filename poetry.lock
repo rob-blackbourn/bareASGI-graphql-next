@@ -259,10 +259,10 @@ description = "A markdown extension for python documentation"
 name = "jetblack-markdown"
 optional = false
 python-versions = ">=3.7,<4.0"
-version = "0.3.1"
+version = "0.6"
 
 [package.dependencies]
-docstring-parser = ">=0.6,<0.7"
+docstring-parser = ">=0.6.1,<0.7.0"
 markdown = ">=3.1,<4.0"
 
 [[package]]
@@ -702,7 +702,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 graphene = ["jetblack-graphene"]
 
 [metadata]
-content-hash = "19011cba7286cb6ab8e65d179d65f59f39b71f59eed9863d758db9c39c7ecbb1"
+content-hash = "54c3020603c218305661950756906855eee685de5db5b2554de43841d0567897"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -795,8 +795,8 @@ jetblack-graphene = [
     {file = "jetblack_graphene-3.0b0-py2.py3-none-any.whl", hash = "sha256:ba96d7ce5855ac969a356a534c8898f1dddcaedda920ef381f1ac6d6899a6270"},
 ]
 jetblack-markdown = [
-    {file = "jetblack-markdown-0.3.1.tar.gz", hash = "sha256:599af71b6f2cec76e8dc7267e655a4db3046e94853896792b57de9340a001f52"},
-    {file = "jetblack_markdown-0.3.1-py3-none-any.whl", hash = "sha256:5a37deab1874ff95b09847af6573d4964d9fadb8bc4fa2aacf01db560cefaf41"},
+    {file = "jetblack-markdown-0.6.tar.gz", hash = "sha256:27d69f8d8d83d75299e250d0afd8c07f5e55d626c7b465c329a32e87f05e6374"},
+    {file = "jetblack_markdown-0.6-py3-none-any.whl", hash = "sha256:4215db8076584aea5949ae2323be8d7a17ce4987aa891445d16d91f0a5d3a2ae"},
 ]
 jinja2 = [
     {file = "Jinja2-2.11.1-py2.py3-none-any.whl", hash = "sha256:b0eaf100007721b5c16c1fc1eecb87409464edc10469ddc9a22a27a99123be49"},

@@ -12,6 +12,12 @@ Install from the pie shop.
 pip install bareasgi-graphql-next
 ```
 
+If you wish to install with the grapheme option:
+
+```bash
+pip install 'bareasgi-graphql-next[graphene]'
+```
+
 ## Usage
 
 You can register the graphql controller with the `add_graphql_next` function.
