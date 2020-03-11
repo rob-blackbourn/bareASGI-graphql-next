@@ -1,4 +1,4 @@
-# Usage
+# Getting Started
 
 A utility function `add_graphql_next` is provided.
 
