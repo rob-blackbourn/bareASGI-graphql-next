@@ -16,7 +16,7 @@ from urllib.parse import parse_qs, urlencode
 import graphql
 import bareutils.header as header
 
-from graphql import GraphQLSchema
+from graphql import GraphQLSchema, ExecutionResult
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 from bareasgi import Application
 from bareutils import text_reader, text_writer, response_code
@@ -43,7 +43,7 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
-def _make_sse_message(val: Optional[graphql.ExecutionResult]) -> str:
+def _make_sse_message(val: Optional[ExecutionResult]) -> str:
     if val is None:
         return f'event: ping\ndata: {datetime.utcnow()}\n\n'
 
@@ -55,7 +55,7 @@ def _make_sse_message(val: Optional[graphql.ExecutionResult]) -> str:
     return f'event: message\ndata: {json.dumps(response)}\n\n'
 
 
-def _make_json_message(val: Optional[graphql.ExecutionResult]) -> str:
+def _make_json_message(val: Optional[ExecutionResult]) -> str:
     if val is None:
         return '\n'
 
@@ -107,7 +107,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str],
             info: Info
-    ) -> graphql.ExecutionResult:
+    ) -> ExecutionResult:
         """Execute a query
 
         Args:
@@ -117,7 +117,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             info (Info): The application info.
 
         Returns:
-            graphql.ExecutionResult: The query results.
+            ExecutionResult: The query results.
         """
 
     def add_routes(
@@ -499,7 +499,7 @@ class GraphQLController(GraphQLControllerBase):
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str],
             info: Info
-    ) -> graphql.ExecutionResult:
+    ) -> ExecutionResult:
         return await graphql.graphql(
             schema=self.schema,
             source=graphql.Source(query),  # source=query,

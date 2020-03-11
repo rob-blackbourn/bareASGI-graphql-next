@@ -22,6 +22,7 @@ from typing import (
 
 from baretypes import Info, WebSocket
 import graphql
+from graphql import ExecutionResult, GraphQLSchema
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 
 from .utils import has_subscription
@@ -187,7 +188,7 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str]
-    ) -> graphql.ExecutionResult:
+    ) -> ExecutionResult:
         """Execute a query
 
         Args:
@@ -196,7 +197,7 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
             operation_name (Optional[str]): An optional operation name.
 
         Returns:
-            graphql.ExecutionResult: The query results.
+            ExecutionResult: The query results.
         """
 
     async def _on_start(self, id_: Optional[Id], payload: Optional[Union[list, dict]]):
@@ -215,7 +216,7 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
             document = graphql.parse(query)
             # noinspection PyUnresolvedReferences
             if has_subscription(document):
-                result: Union[MapAsyncIterator, graphql.ExecutionResult] = await self.subscribe(
+                result: Union[MapAsyncIterator, ExecutionResult] = await self.subscribe(
                     query,
                     variable_values,
                     operation_name
@@ -227,7 +228,7 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
                     operation_name
                 )
 
-            if isinstance(result, graphql.ExecutionResult):
+            if isinstance(result, ExecutionResult):
                 await self._send_execution_result(id_, result)
                 return True
 
@@ -278,7 +279,7 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
     async def _send_execution_result(
             self,
             id_: Id,
-            execution_result: graphql.ExecutionResult
+            execution_result: ExecutionResult
     ) -> None:
         result: Dict[str, Union[Dict[str, Any], List[Any]]] = dict()
 
@@ -335,7 +336,7 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
 class GraphQLWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
     """A GraphQL WebSocket handler instance"""
 
-    def __init__(self, schema: graphql.GraphQLSchema, web_socket: WebSocket, info: Info) -> None:
+    def __init__(self, schema: GraphQLSchema, web_socket: WebSocket, info: Info) -> None:
         super().__init__(web_socket, info)
         self.schema = schema
 
@@ -359,7 +360,7 @@ class GraphQLWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str]
-    ) -> graphql.ExecutionResult:
+    ) -> ExecutionResult:
         return await graphql.graphql(
             schema=self.schema,
             source=graphql.Source(query),  # source=query,
