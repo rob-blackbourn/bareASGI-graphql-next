@@ -9,6 +9,7 @@ from graphql.subscription.map_async_iterator import MapAsyncIterator
 
 from ..websocket_instance import GraphQLWebSocketHandlerInstanceBase
 
+
 class GrapheneWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
     """A GraphQL WebSocket handler instance"""
 
@@ -35,7 +36,7 @@ class GrapheneWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str]
     ) -> graphql.ExecutionResult:
-        return await self.schema.execute(
+        return await self.schema.execute_async(
             source=query,
             variable_values=variables,
             operation_name=operation_name,

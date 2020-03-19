@@ -39,3 +39,10 @@ uvicorn.run(app, port=9009)
 
 ```
 
+## Development
+
+To develop with the graphene optional package:
+
+```bash
+poetry install --extras graphene
+```

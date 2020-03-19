@@ -10,6 +10,7 @@ from graphql.subscription.map_async_iterator import MapAsyncIterator
 from ..controller import GraphQLControllerBase
 from .websocket_handler import GrapheneWebSocketHandler
 
+
 class GrapheneController(GraphQLControllerBase):
     """Graphene Controller"""
 
@@ -53,7 +54,7 @@ class GrapheneController(GraphQLControllerBase):
             operation_name: Optional[str],
             info: Info
     ) -> ExecutionResult:
-        return await self.schema.execute(
+        return await self.schema.execute_async(
             source=query,
             variable_values=variables,
             operation_name=operation_name,
