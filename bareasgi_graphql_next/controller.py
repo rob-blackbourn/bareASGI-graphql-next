@@ -141,7 +141,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             wrap_middleware(rest_middleware, self.handle_graphql)
         )
         app.http_router.add(
-            {'POST', 'OPTION'},
+            {'POST', 'OPTIONS'},
             path_prefix + '/graphql',
             wrap_middleware(rest_middleware, self.handle_graphql)
         )
@@ -151,7 +151,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             wrap_middleware(rest_middleware, self.handle_sse_get)
         )
         app.http_router.add(
-            {'POST', 'OPTION'},
+            {'POST', 'OPTIONS'},
             path_prefix + '/subscriptions',
             wrap_middleware(rest_middleware, self.handle_sse_post)
         )
