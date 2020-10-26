@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bareasgi-graphql-next"
-version = "3.12.1"
+version = "3.12.2"
 description = "GraphQL support for the bareASGI framework"
 authors = ["Rob Blackbourn <rob.blackbourn@gmail.com>"]
 license = "Apache-2.0"
@@ -15,7 +15,7 @@ python = "^3.7"
 bareASGI = "^3"
 bareutils = "^3"
 graphql-core = "^3.1"
-jetblack-graphene = {version = "^3.0b5", optional = true, allow-prereleases = true}
+graphene = {version = "^3.0b6", optional = true, allow-prereleases = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"
@@ -27,11 +27,11 @@ pylint = "^2.3"
 mypy = "^0.720.0"
 mkdocs = "^1.0.4"
 mkdocs-material = "^4.6.0"
-jetblack-markdown = "^0.6"
+jetblack-markdown = "^0.7"
 autopep8 = "^1.5"
 
 [tool.poetry.extras]
-graphene = [ "jetblack-graphene" ]
+graphene = [ "graphene" ]
 
 [build-system]
 requires = ["poetry>=0.12"]

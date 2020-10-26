@@ -34,7 +34,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.1, mkdocs-material-4.6.3">
+      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-4.6.3">
     
     
       
@@ -560,7 +560,6 @@ mechanism for queries and mutations is just a simple <code>fetch</code> request.
     <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
 </code></pre></div>
 
-
 <p>We might wrap this up in the following function:</p>
 <div class="codehilite"><pre><span></span><code><span class="kr">export</span> <span class="kr">class</span> <span class="nx">FetchError</span> <span class="kr">extends</span> <span class="nb">Error</span> <span class="p">{</span>
     <span class="nx">constructor</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="p">...</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
@@ -600,7 +599,6 @@ mechanism for queries and mutations is just a simple <code>fetch</code> request.
 <span class="p">}</span>
 </code></pre></div>
 
-
 <p>This can then be called like this:</p>
 <div class="codehilite"><pre><span></span><code><span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
 <span class="kr">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;query { someQuery { someField someOtherField } }&#39;</span>
@@ -615,7 +613,6 @@ mechanism for queries and mutations is just a simple <code>fetch</code> request.
     <span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">),</span>
     <span class="nx">data</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
 </code></pre></div>
-
 
 <h2 id="subscriptions">Subscriptions<a class="headerlink" href="#subscriptions" title="Permanent link">&para;</a></h2>
 <p>Two transport mechanisms are provided for GraphQL subscriptions:</p>
@@ -648,7 +645,6 @@ if from the server to the client.</p>
 <span class="p">}</span>
 </code></pre></div>
 
-
 <p>We could wrap this up in the following manner:</p>
 <div class="codehilite"><pre><span></span><code><span class="kr">export</span> <span class="kd">function</span> <span class="nx">graphQLSubscriber</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">,</span> <span class="nx">onError</span><span class="p">,</span> <span class="nx">onSuccess</span><span class="p">)</span> <span class="p">{</span>
     <span class="kd">let</span> <span class="nx">subscriptionUrl</span> <span class="o">=</span> <span class="nx">url</span> <span class="o">+</span> <span class="s1">&#39;?query=&#39;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">query</span><span class="p">)</span>
@@ -667,7 +663,6 @@ if from the server to the client.</p>
 <span class="p">}</span>
 </code></pre></div>
 
-
 <p>This can then be called like this:</p>
 <div class="codehilite"><pre><span></span><code><span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/sse-subscription&#39;</span>
 <span class="kr">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;subscription { someSubscription { someField someOtherField } }&#39;</span>
@@ -682,7 +677,6 @@ if from the server to the client.</p>
     <span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">),</span>
     <span class="nx">data</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
 </code></pre></div>
-
 
 <h2 id="queries-mutations-subscriptions">Queries, Mutations &amp; Subscriptions<a class="headerlink" href="#queries-mutations-subscriptions" title="Permanent link">&para;</a></h2>
 <p>In this implementation queries, mutations and subscriptions can <strong>all</strong> be made using the <code>fetch</code> api.
@@ -718,7 +712,7 @@ the url to be used to request server sent events through the
     <span class="p">})</span>
     <span class="p">})</span>
     <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span> <span class="p">=&gt;</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mi">200</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mf">200</span><span class="p">)</span> <span class="p">{</span>
         <span class="c1">// A 200 response is from a query or mutation.</span>
 
         <span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
@@ -728,7 +722,7 @@ the url to be used to request server sent events through the
             <span class="p">})</span>
             <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">onError</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
 
-        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mi">201</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mf">201</span><span class="p">)</span> <span class="p">{</span>
         <span class="c1">// A 201 is the response for a subscription.</span>
 
         <span class="c1">// The url for the event source is passed in the &#39;location&#39; header.</span>
@@ -746,7 +740,7 @@ the url to be used to request server sent events through the
         <span class="p">}</span>
 
         <span class="nx">abortController</span><span class="p">.</span><span class="nx">signal</span><span class="p">.</span><span class="nx">onabort</span> <span class="o">=</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nx">eventSource</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">!==</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">eventSource</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">!==</span> <span class="mf">2</span><span class="p">)</span> <span class="p">{</span>
             <span class="nx">eventSource</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
             <span class="p">}</span>
         <span class="p">}</span>
@@ -763,7 +757,6 @@ the url to be used to request server sent events through the
     <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
-
 
 <p>This can then be called like this:</p>
 <div class="codehilite"><pre><span></span><code><span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
@@ -785,7 +778,6 @@ the url to be used to request server sent events through the
 <span class="c1">// Later ...</span>
 <span class="nx">unsubscribe</span><span class="p">()</span>
 </code></pre></div>
-
 
 <h2 id="observable">Observable<a class="headerlink" href="#observable" title="Permanent link">&para;</a></h2>
 <p>Clearly the above code roles it's own <em>observable</em> pattern. We can wrap this up with rxjs
@@ -819,7 +811,7 @@ to provide a cleaner client.</p>
         <span class="p">})</span>
     <span class="p">})</span>
         <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span> <span class="p">=&gt;</span> <span class="p">{</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mi">200</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mf">200</span><span class="p">)</span> <span class="p">{</span>
             <span class="c1">// A 200 response is from a query or mutation.</span>
 
             <span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
@@ -829,7 +821,7 @@ to provide a cleaner client.</p>
             <span class="p">})</span>
             <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">observer</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
 
-        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mi">201</span><span class="p">)</span> <span class="p">{</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mf">201</span><span class="p">)</span> <span class="p">{</span>
             <span class="c1">// A 201 is the response for a subscription.</span>
 
             <span class="c1">// The url for the event source is passed in the &#39;location&#39; header.</span>
@@ -846,7 +838,7 @@ to provide a cleaner client.</p>
             <span class="p">}</span>
 
             <span class="nx">abortController</span><span class="p">.</span><span class="nx">signal</span><span class="p">.</span><span class="nx">onabort</span> <span class="o">=</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nx">eventSource</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">!==</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">eventSource</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">!==</span> <span class="mf">2</span><span class="p">)</span> <span class="p">{</span>
                 <span class="nx">eventSource</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
             <span class="p">}</span>
             <span class="p">}</span>
@@ -863,7 +855,6 @@ to provide a cleaner client.</p>
     <span class="p">})</span>
 <span class="p">}</span>
 </code></pre></div>
-
 
 <p>This can then be called like this:</p>
 <div class="codehilite"><pre><span></span><code><span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
@@ -887,7 +878,6 @@ to provide a cleaner client.</p>
 <span class="c1">// Later ...</span>
 <span class="nx">subscription</span><span class="p">.</span><span class="nx">unsubscribe</span><span class="p">()</span>
 </code></pre></div>
-
 
 <h2 id="prebuilt-clients">Prebuilt Clients<a class="headerlink" href="#prebuilt-clients" title="Permanent link">&para;</a></h2>
 <p>There are some prebuilt javascript clients:</p>
@@ -969,7 +959,7 @@ to provide a cleaner client.</p>
     
       <script src="../../assets/javascripts/application.c33a9706.js"></script>
       
-      <script>app.initialize({version:"1.1",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.1.2",url:{base:"../.."}})</script>
       
     
   </body>
