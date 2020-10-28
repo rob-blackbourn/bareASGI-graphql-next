@@ -426,7 +426,6 @@ class GraphQLControllerBase(metaclass=ABCMeta):
                         self.cancellation_event,
                         timeout=self.ping_interval
                 ):
-                    print(val)
                     if content_type == b'text/event-stream':
                         yield _make_sse_message(val).encode('utf-8')
                         # Give the ASGI server a nudge.
