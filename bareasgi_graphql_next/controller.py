@@ -197,7 +197,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
 
         host = header.find(b'host', scope['headers'])
         body = make_template(
-            host,
+            host.decode(),
             self.path_prefix + '/graphql',
             self.path_prefix + '/subscriptions'
         )
