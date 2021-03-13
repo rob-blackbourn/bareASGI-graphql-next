@@ -2,66 +2,54 @@
 Graphiql template
 """
 
+import json
 import string
+from typing import Any, Mapping, Optional
 
-graphiql_template = string.Template(
+GRAPHIQL_VERSION = '1.0.3'
+SUBSCRIPTIONS_TRANSPORT_VERSION = '0.7.3'
+
+GRAPHIQL_TEMPLATE = string.Template(
     """
 <!DOCTYPE html>
 <html>
   <head>
+    <title>${graphiql_html_title}</title>
+    <meta name="robots" content="noindex" />
+    <meta name="referrer" content="origin" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
       body {
-        height: 100%;
         margin: 0;
-        width: 100%;
         overflow: hidden;
       }
       #graphiql {
         height: 100vh;
       }
     </style>
-    
-    <!--
-      This GraphiQL example depends on Promise and fetch, which are available in
-      modern browsers, but can be "polyfilled" for older browsers.
-      GraphiQL itself depends on React DOM.
-      If you do not want to rely on a CDN, you can host these files locally or
-      include them directly in your favored resource bunder.
-    -->
-    <script src="//cdn.jsdelivr.net/es6-promise/4.0.5/es6-promise.auto.min.js"></script>
-    <script src="//cdn.jsdelivr.net/fetch/0.9.0/fetch.min.js"></script>
-    <script src="//cdn.jsdelivr.net/react/15.4.2/react.min.js"></script>
-    <script src="//cdn.jsdelivr.net/react/15.4.2/react-dom.min.js"></script>
-    
-    <script src="//unpkg.com/subscriptions-transport-ws@${subscriptions_transport_version}/browser/client.js"></script>
-    <script src="//unpkg.com/graphiql-subscriptions-fetcher@0.0.2/browser/client.js"></script>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql-custom-headers@1.0.0/graphiql-custom-headers.css" />
-    <script src="//cdn.jsdelivr.net/npm/graphiql-custom-headers@1.0.0/graphiql-custom-headers.min.js"></script>
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/graphiql@${graphiql_version}/graphiql.css" />
+    <script src="//cdn.jsdelivr.net/npm/promise-polyfill@8.1.3/dist/polyfill.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/unfetch@4.1.0/dist/unfetch.umd.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/react@16.13.1/umd/react.production.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/react-dom@16.13.1/umd/react-dom.production.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/graphiql@${graphiql_version}/graphiql.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/subscriptions-transport-ws@${subscriptions_transport_version}/browser/client.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/graphiql-subscriptions-fetcher@0.0.2/browser/client.js"></script>
   </head>
   <body>
     <div id="graphiql">Loading...</div>
     <script>
-      /**
-       * This GraphiQL example illustrates how to use some of GraphiQL's props
-       * in order to enable reading and updating the URL parameters, making
-       * link sharing of queries a little bit easier.
-       *
-       * This is only one example of this kind of feature, GraphiQL exposes
-       * various React params to enable interesting integrations.
-       */
-       
-      // Parse the search string to get url parameters.
-      var search = window.location.search;
+      // Collect the URL parameters
       var parameters = {};
-      search.substr(1).split('&').forEach(function (entry) {
+      window.location.search.substr(1).split('&').forEach(function (entry) {
         var eq = entry.indexOf('=');
         if (eq >= 0) {
           parameters[decodeURIComponent(entry.slice(0, eq))] =
             decodeURIComponent(entry.slice(eq + 1));
         }
       });
+      var headers = JSON.stringify(JSON.parse('${headers}'), null, 2)
+
       // if variables was provided, try to format it.
       if (parameters.variables) {
         try {
@@ -72,39 +60,27 @@ graphiql_template = string.Template(
           // than present an error.
         }
       }
-      // When the query and variables string is edited, update the URL bar so
-      // that it can be easily shared
-      function onEditQuery(newQuery) {
-        parameters.query = newQuery;
-        updateURL();
-      }
-      function onEditVariables(newVariables) {
-        parameters.variables = newVariables;
-        updateURL();
-      }
-      function onEditOperationName(newOperationName) {
-        parameters.operationName = newOperationName;
-        updateURL();
-      }
-      function updateURL() {
-        var newSearch = '?' + Object.keys(parameters).filter(function (key) {
-          return Boolean(parameters[key]);
+
+      // Produce a Location query string from a parameter object.
+      function locationQuery(params) {
+        return '?' + Object.keys(params).filter(function (key) {
+          return Boolean(params[key]);
         }).map(function (key) {
           return encodeURIComponent(key) + '=' +
-            encodeURIComponent(parameters[key]);
+            encodeURIComponent(params[key]);
         }).join('&');
-        history.replaceState(null, null, newSearch);
       }
-      
-      // Defines a GraphQL fetcher using the fetch API. You're not required to
-      // use fetch, and could instead implement graphQLFetcher however you like,
-      // as long as it returns a Promise or Observable.
-      function graphQLFetcher(graphQLParams, customHeaders) {
-        // This example expects a GraphQL server at the path /graphql.
-        // Change this to point wherever you host your GraphQL server.
-        return fetch(`${query_path}`, {
+
+      function graphQLFetcher(graphQLParams, opts) {
+        return fetch(`${query_url}`, {
           method: 'post',
-          headers: customHeaders,
+          headers: Object.assign(
+            {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            opts && opts.headers,
+          ),
           body: JSON.stringify(graphQLParams),
           credentials: 'include',
         }).then(function (response) {
@@ -117,25 +93,49 @@ graphiql_template = string.Template(
           }
         });
       }
-      
-      const websocketScheme = window.location.protocol === 'http:' ? 'ws:' : 'wss:'
-      let subscriptionsClient = new window.SubscriptionsTransportWs.SubscriptionClient(
-        `$${websocketScheme}//${host}${subscription_path}`, { reconnect: true });
-      let subscriptionsFetcher = window.GraphiQLSubscriptionsFetcher.graphQLFetcher(subscriptionsClient, graphQLFetcher);
-      
-      // Render <GraphiQL /> into the body.
-      // See the README in the top level of this module to learn more about
-      // how you can customize GraphiQL by providing different values or
-      // additional child elements.
+
+      let subscriptionsClient = new SubscriptionsTransportWs.SubscriptionClient(
+        '${subscription_url}',
+        { reconnect: true }
+      );
+      let subscriptionsFetcher = GraphiQLSubscriptionsFetcher.graphQLFetcher(
+        subscriptionsClient,
+        graphQLFetcher
+      );
+
+      function onEditQuery(newQuery) {
+        parameters.query = newQuery;
+        updateURL();
+      }
+      function onEditVariables(newVariables) {
+        parameters.variables = newVariables;
+        updateURL();
+      }
+      function onEditOperationName(newOperationName) {
+        parameters.operationName = newOperationName;
+        updateURL();
+      }
+      function onEditHeaders(newHeaders) {
+        parameters.headers = newHeaders;
+        updateURL();
+      }
+      function updateURL() {
+        history.replaceState(null, null, locationQuery(parameters));
+      }
+
       ReactDOM.render(
         React.createElement(GraphiQL, {
           fetcher: subscriptionsFetcher,
+          onEditQuery: onEditQuery,
+          onEditVariables: onEditVariables,
+          onEditOperationName: onEditOperationName,
+          onEditHeaders: onEditHeaders,
           query: parameters.query,
           variables: parameters.variables,
           operationName: parameters.operationName,
-          onEditQuery: onEditQuery,
-          onEditVariables: onEditVariables,
-          onEditOperationName: onEditOperationName
+          headers: headers,
+          headerEditorEnabled: true,
+          shouldPersistHeaders: true
         }),
         document.getElementById('graphiql')
       );
@@ -148,13 +148,20 @@ graphiql_template = string.Template(
 
 def make_template(
         host: str,
-        query_path: str = '/graphql',
-        subscription_path: str = '/subscriptions',
-        subscriptions_transport_version: str = "0.7.0",
+        query_url: str,
+        subscription_url: str,
+        *,
+        graphiql_version: str = GRAPHIQL_VERSION,
+        subscriptions_transport_version: str = SUBSCRIPTIONS_TRANSPORT_VERSION,
+        title: str = 'GraphiQL',
+        headers: Optional[Mapping[str, Any]] = None
 ) -> str:
-    return graphiql_template.substitute(
+    return GRAPHIQL_TEMPLATE.substitute(
         host=host,
-        query_path=query_path,
-        subscription_path=subscription_path,
+        query_url=query_url,
+        subscription_url=subscription_url,
+        graphiql_version=graphiql_version,
         subscriptions_transport_version=subscriptions_transport_version,
+        graphiql_html_title=title,
+        headers=json.dumps(headers or {})
     )

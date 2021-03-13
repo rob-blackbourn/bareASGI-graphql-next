@@ -32,6 +32,8 @@ from baretypes import (
 from .template import make_template
 from .utils import (
     cancellable_aiter,
+    get_host,
+    get_scheme,
     has_subscription,
     wrap_middleware,
     ZeroEvent
@@ -195,11 +197,15 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             HttpResponse: [description]
         """
 
-        host = header.find(b'host', scope['headers'])
+        host = get_host(scope['headers'])
+        scheme = get_scheme(scope)
+        query_path = f'{scheme}://{host}{self.path_prefix}/graphql'
+        ws_scheme = 'ws' if scheme == 'http' else 'wss'
+        subscription_path = f'{ws_scheme}://{host}{self.path_prefix}/subscriptions'
         body = make_template(
-            host.decode(),
-            self.path_prefix + '/graphql',
-            self.path_prefix + '/subscriptions'
+            host,
+            query_path,
+            subscription_path
         )
         headers = [
             (b'content-type', b'text/html'),

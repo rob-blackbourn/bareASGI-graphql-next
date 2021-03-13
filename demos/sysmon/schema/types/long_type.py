@@ -3,97 +3,83 @@ GraphQL Long type
 """
 
 from typing import Any
-from graphql.type import GraphQLScalarType
-from graphql.error import INVALID
-from graphql.pyutils import is_integer
-from graphql.language.ast import IntValueNode
+
+from graphql.error import GraphQLError
+from graphql.language.ast import IntValueNode, ValueNode
+from graphql.language.printer import print_ast
+from graphql.pyutils import inspect, is_integer
+from graphql.type.definition import GraphQLScalarType
 
 MAX_LONG = 2 ** 53 - 1
 MIN_LONG = -(2 ** 53)
 
-def is_valid_long(value: int):
-    """Is this a valid value for a long?
 
-    :param value: The value to check
-    :type value: int
-    :return: True if this is a valid value for a long, otherwise false
-    :rtype: [type]
-    """
-    return MIN_LONG <= value <= MAX_LONG
-
-def serialize_long(value: Any) -> int:
-    """Serialize the value to a long
-
-    :param value: The value to serialize
-    :type value: Any
-    :raises TypeError: Raised if the value cannot be serialized as a long
-    :return: THe value as a long
-    :rtype: int
-    """
-    if isinstance(value, bool):
-        return 1 if value else 0
+def _serialize_long(output_value: Any) -> int:
+    if isinstance(output_value, bool):
+        return 1 if output_value else 0
 
     try:
-        if isinstance(value, int):
-            num = value
-        elif isinstance(value, float):
-            num = int(value)
-            if num != value:
+        if isinstance(output_value, int):
+            num = output_value
+        elif isinstance(output_value, float):
+            num = int(output_value)
+            if num != output_value:
                 raise ValueError()
-        elif not value and isinstance(value, str):
-            value = ''
+        elif not output_value and isinstance(output_value, str):
+            output_value = ''
             raise ValueError()
         else:
-            num = int(value)
-            float_value = float(value)
-            if num != float_value:
-                raise ValueError()
-    except (OverflowError, ValueError, TypeError):
-        raise TypeError(f'Long cannot represent non-integer value: {value:!r}')
+            num = int(output_value)  # raises ValueError if not an intger
+    except (OverflowError, ValueError, TypeError) as error:
+        raise GraphQLError(
+            'Long cannot represent non-integer value: ' + inspect(output_value)
+        ) from error
 
-    if not is_valid_long(num):
-        raise TypeError(f'Long cannot represent non 53-bit signed integer value: {value:!r}')
+    if not MIN_LONG <= num <= MAX_LONG:
+        raise GraphQLError(
+            'Long cannot represent non 53-bit signed integer value: '
+            + inspect(output_value)
+        )
 
     return num
 
-def coerce_long(value: Any) -> int:
-    """Coerce the value to a long
 
-    :param value: The value
-    :type value: Any
-    :raises TypeError: Raised if the value cannot be coerced
-    :return: The coerced value
-    :rtype: int
-    """
-    if not is_integer(value):
-        raise TypeError(f'Long cannot represent non-integer value: {value:!r}')
-    if not is_valid_long(value):
-        raise TypeError(f'Long cannot represent non 53-bit signed integer value: {value: !r}')
-    return int(value)
+def _coerce_long(input_value: Any) -> int:
+    if not is_integer(input_value):
+        raise GraphQLError(
+            'Long cannot represent non-integer value: ' + inspect(input_value)
+        )
+    if not MIN_LONG <= input_value <= MAX_LONG:
+        raise GraphQLError(
+            'Long cannot represent non 53-bit signed integer value: '
+            + inspect(input_value)
+        )
+    return input_value
 
-def parse_long_literal(ast, _variables=None):
-    """Parse the literal as a long
 
-    :param ast: The ast node
-    :type ast: An ast node
-    :param _variables: Optional variables, defaults to None
-    :type _variables: [type], optional
-    :return: The number
-    :rtype: int
-    """
-    if isinstance(ast, IntValueNode):
-        num = int(ast.value)
-        if is_valid_long(num):
-            return num
-    return INVALID
+def _parse_long_literal(value_node: ValueNode, _variables=None) -> int:
+    if not isinstance(value_node, IntValueNode):
+        raise GraphQLError(
+            'Long cannot represent non-integer value: ' +
+            print_ast(value_node),
+            value_node
+        )
+    num = int(value_node.value)
+    if not MIN_LONG <= num <= MAX_LONG:
+        raise GraphQLError(
+            'Long cannot represent non 53-biy signed integer value: '
+            + print_ast(value_node),
+            value_node
+        )
+    return num
 
-# pylint: disable=invalid-name
+
 GraphQLLong = GraphQLScalarType(
     name='Long',
     description="The 'Long' scalar type represents"
                 " non-fractional signed whole numeric values."
                 " Int can represent values between -(2^53) and 2^53 - 1.",
-    serialize=serialize_long,
-    parse_value=coerce_long,
-    parse_literal=parse_long_literal
+    serialize=_serialize_long,
+    parse_value=_coerce_long,
+    parse_literal=_parse_long_literal
 )

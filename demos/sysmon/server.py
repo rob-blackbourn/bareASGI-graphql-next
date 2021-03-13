@@ -3,20 +3,21 @@ Server
 """
 
 import asyncio
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
 import logging
 import os
 import socket
 from typing import Optional
+
+from hypercorn.asyncio import serve
+from hypercorn.config import Config
 import uvicorn
+
 from sysmon.app import make_application
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def initialise_logging() -> None:
-
     """Initialise logging"""
     logging.basicConfig(level=logging.DEBUG)
 
@@ -78,7 +79,7 @@ def start_http_server(
     elif http_server == "hypercorn":
         start_hypercorn_server(host, port, ssl_enabled, keyfile, certfile)
     else:
-        logger.error('Unknown http server "%s"', http_server)
+        LOGGER.error('Unknown http server "%s"', http_server)
         raise Exception(f'Unknown http server "{http_server}"')
 
 
@@ -86,7 +87,7 @@ def start_server() -> None:
     """Start the server"""
     hostname = socket.gethostname()
 
-    http_server = 'uvicorn'  # 'hypercorn' or 'uvicorn'
+    http_server = 'hypercorn'  # 'hypercorn' or 'uvicorn'
     host = '0.0.0.0'
     port = 9009
     ssl_enabled = False

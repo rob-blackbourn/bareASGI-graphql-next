@@ -11,7 +11,7 @@ from math import nan
 
 import psutil
 
-from stringcase import camelcase
+from graphql.pyutils import snake_to_camel as camelcase
 from typing import List, Mapping, Any
 
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ class SystemMonitor:
 
     async def listen(self) -> Queue:
         """Add a listener"""
-        listener = asyncio.Queue()
+        listener: "Queue[dict]" = asyncio.Queue()
 
         await self.lock.acquire()
         try:

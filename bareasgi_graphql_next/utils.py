@@ -4,18 +4,24 @@ Utilities
 
 import asyncio
 from asyncio import Event
-from typing import AsyncIterator, Optional, Set, Any
+from typing import AsyncIterator, List, Optional, Set, TYPE_CHECKING
 
 import graphql
 
 from baretypes import (
     Scope,
+    Header,
     HttpRequestCallback,
     HttpMiddlewareCallback
 )
 from bareasgi.middleware import mw
 from graphql import OperationType
 from graphql.subscription.map_async_iterator import MapAsyncIterator
+
+if TYPE_CHECKING:
+    # pylint: disable=ungrouped-imports
+    from asyncio import Future
+    from typing import Any
 
 
 async def cancellable_aiter(
@@ -39,7 +45,7 @@ async def cancellable_aiter(
     """
     result_iter = async_iterator.__aiter__()
     cancellation_task = asyncio.create_task(cancellation_event.wait())
-    pending: Set[asyncio.Future[Any]] = {
+    pending: Set["Future[Any]"] = {
         cancellation_task,
         asyncio.create_task(result_iter.__anext__())
     }
@@ -82,10 +88,6 @@ async def cancellable_aiter(
                     pending.discard(sleep_task)
                 sleep_task = asyncio.create_task(asyncio.sleep(timeout))
                 pending.add(sleep_task)
-
-
-def _is_http_2(scope: Scope) -> bool:
-    return scope['http_version'] in ('2', '2.0')
 
 
 def _is_subscription(definition: graphql.DefinitionNode) -> bool:
@@ -161,3 +163,34 @@ class ZeroEvent:
             int: The current count
         """
         return self._count
+
+
+def _first_valid_header(
+        name: bytes,
+        headers: List[Header],
+        default: Optional[bytes]
+) -> Optional[bytes]:
+    return next(
+        map(
+            lambda x: x[1],
+            filter(
+                lambda x: x[0] == name and x[1],
+                headers
+            )
+        ),
+        default
+    )
+
+
+def get_host(headers: List[Header]) -> str:
+    host = _first_valid_header(b'x-forwarded-host', headers, None)
+    if not host:
+        host = _first_valid_header(b'host', headers, None)
+    if not host:
+        raise KeyError('No "host" or "x-forwarded-host" in headers')
+    return host.decode()
+
+
+def get_scheme(scope: Scope) -> str:
+    scheme = _first_valid_header(b'x-forwarded-proto', scope['headers'], None)
+    return scheme.decode() if scheme else scope['scheme']

@@ -10,7 +10,7 @@ import pkg_resources
 from bareasgi import Application
 from bareasgi_cors import CORSMiddleware
 from bareasgi_graphql_next import add_graphql_next
-from baretypes import Scope, Info, RouteMatches, Content, HttpResponse
+from baretypes import Scope, Info, RouteMatches, Content, HttpResponse, Message
 from bareutils import text_writer
 import bareutils.header as header
 
@@ -19,8 +19,8 @@ from .schema import schema
 
 logger = logging.getLogger(__name__)
 
-# pylint: disable=unused-argument
-async def start_service(scope: Scope, info: Info, request) -> None:
+
+async def start_service(_scope: Scope, info: Info, _request: Message) -> None:
     """Start the service"""
     system_monitor = SystemMonitor(30)
 
@@ -28,8 +28,7 @@ async def start_service(scope: Scope, info: Info, request) -> None:
     info['system_monitor_task'] = asyncio.create_task(system_monitor.startup())
 
 
-# pylint: disable=unused-argument
-async def stop_service(scope: Scope, info: Info, request) -> None:
+async def stop_service(_scope: Scope, info: Info, _request: Message) -> None:
     """Stop the service"""
     system_monitor: SystemMonitor = info['system_monitor']
     system_monitor_task: asyncio.Task = info['system_monitor_task']
