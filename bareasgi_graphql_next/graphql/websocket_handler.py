@@ -17,7 +17,7 @@ class GraphQLWebSocketHandler:
 
     def __init__(self, schema: graphql.GraphQLSchema):
         """GraphQL WebSocket handler
-        
+
         Args:
             schema (graphql.GraphQLSchema): The schema
         """
@@ -30,5 +30,10 @@ class GraphQLWebSocketHandler:
             matches: RouteMatches,
             web_socket: WebSocket
     ) -> None:
-        instance = GraphQLWebSocketHandlerInstance(self.schema, web_socket, info)
+        instance = GraphQLWebSocketHandlerInstance(
+            self.schema,
+            web_socket,
+            scope,
+            info
+        )
         await instance.start(scope['subprotocols'])

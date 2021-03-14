@@ -17,7 +17,7 @@ from typing import (
     Set
 )
 
-from baretypes import Info, WebSocket
+from baretypes import Info, Scope, WebSocket
 import graphql
 from graphql import ExecutionResult
 from graphql.subscription.map_async_iterator import MapAsyncIterator
@@ -51,8 +51,9 @@ Id = Union[str, int]
 class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
     """A GraphQL WebSocket handler instance"""
 
-    def __init__(self, web_socket: WebSocket, info: Info) -> None:
+    def __init__(self, web_socket: WebSocket, scope: Scope, info: Info) -> None:
         self.web_socket = web_socket
+        self.scope = scope
         self.info = info
         self._subscriptions: MutableMapping[Id, asyncio.Future] = {}
         self._is_closed = False

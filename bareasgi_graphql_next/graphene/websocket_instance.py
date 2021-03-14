@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, Optional
 
-from baretypes import Info, WebSocket
+from baretypes import Info, Scope, WebSocket
 import graphene
 import graphql
 from graphql.subscription.map_async_iterator import MapAsyncIterator
@@ -13,8 +13,14 @@ from ..websocket_instance import GraphQLWebSocketHandlerInstanceBase
 class GrapheneWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
     """A GraphQL WebSocket handler instance"""
 
-    def __init__(self, schema: graphene.Schema, web_socket: WebSocket, info: Info) -> None:
-        super().__init__(web_socket, info)
+    def __init__(
+            self,
+            schema: graphene.Schema,
+            web_socket: WebSocket,
+            scope: Scope,
+            info: Info
+    ) -> None:
+        super().__init__(web_socket, scope, info)
         self.schema = schema
 
     async def subscribe(
@@ -27,7 +33,7 @@ class GrapheneWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
             query,
             variable_values=variables,
             operation_name=operation_name,
-            context_value=self.info
+            context_value={'scope': self.scope, 'info': self.info}
         )
 
     async def query(
@@ -40,5 +46,5 @@ class GrapheneWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
             source=query,
             variable_values=variables,
             operation_name=operation_name,
-            context_value=self.info
+            context_value={'scope': self.scope, 'info': self.info}
         )

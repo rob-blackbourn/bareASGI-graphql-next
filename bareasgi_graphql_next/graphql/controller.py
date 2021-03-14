@@ -18,6 +18,7 @@ from baretypes import (
 from ..controller import GraphQLControllerBase
 from .websocket_handler import GraphQLWebSocketHandler
 
+
 class GraphQLController(GraphQLControllerBase):
     """GraphQL Controller"""
 
@@ -45,6 +46,7 @@ class GraphQLController(GraphQLControllerBase):
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str],
+            scope: Scope,
             info: Info
     ) -> MapAsyncIterator:
         result = await graphql.subscribe(
@@ -52,7 +54,7 @@ class GraphQLController(GraphQLControllerBase):
             document=graphql.parse(query),
             variable_values=variables,
             operation_name=operation_name,
-            context_value=info
+            context_value={'scope': scope, 'info': info}
         )
         return cast(MapAsyncIterator, result)
 
@@ -61,6 +63,7 @@ class GraphQLController(GraphQLControllerBase):
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str],
+            scope: Scope,
             info: Info
     ) -> ExecutionResult:
         return await graphql.graphql(
@@ -68,7 +71,7 @@ class GraphQLController(GraphQLControllerBase):
             source=graphql.Source(query),  # source=query,
             variable_values=variables,
             operation_name=operation_name,
-            context_value=info,
+            context_value={'scope': scope, 'info': info},
             middleware=self.middleware
         )
 

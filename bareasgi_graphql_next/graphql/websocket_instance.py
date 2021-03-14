@@ -9,18 +9,25 @@ from typing import (
     cast
 )
 
-from baretypes import Info, WebSocket
+from baretypes import Info, Scope, WebSocket
 import graphql
 from graphql import ExecutionResult, GraphQLSchema
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 
 from ..websocket_instance import GraphQLWebSocketHandlerInstanceBase
 
+
 class GraphQLWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
     """A GraphQL WebSocket handler instance"""
 
-    def __init__(self, schema: GraphQLSchema, web_socket: WebSocket, info: Info) -> None:
-        super().__init__(web_socket, info)
+    def __init__(
+            self,
+            schema: GraphQLSchema,
+            web_socket: WebSocket,
+            scope: Scope,
+            info: Info
+    ) -> None:
+        super().__init__(web_socket, scope, info)
         self.schema = schema
 
     async def subscribe(
@@ -34,7 +41,7 @@ class GraphQLWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
             document=graphql.parse(query),
             variable_values=variables,
             operation_name=operation_name,
-            context_value=self.info
+            context_value={'scope': self.scope, 'info': self.info}
         )
         return cast(MapAsyncIterator, result)
 
@@ -49,5 +56,5 @@ class GraphQLWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
             source=graphql.Source(query),  # source=query,
             variable_values=variables,
             operation_name=operation_name,
-            context_value=self.info
+            context_value={'scope': self.scope, 'info': self.info}
         )

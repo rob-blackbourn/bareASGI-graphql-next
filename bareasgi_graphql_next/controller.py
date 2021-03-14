@@ -85,6 +85,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str],
+            scope: Scope,
             info: Info
     ) -> MapAsyncIterator:
         """Execute a subscription.
@@ -93,6 +94,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             query (str): The subscription query.
             variables (Optional[Dict[str, Any]]): Optional variables.
             operation_name (Optional[str]): An optional operation name.
+            scope (Scope): The ASGI scope.
             info (Info): The application info.
 
         Returns:
@@ -105,6 +107,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str],
+            scope: Scope,
             info: Info
     ) -> ExecutionResult:
         """Execute a query
@@ -113,6 +116,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             query (str): The subscription query.
             variables (Optional[Dict[str, Any]]): Optional variables.
             operation_name (Optional[str]): An optional operation name.
+            scope (Scope): The ASGI scope.
             info (Info): The application info.
 
         Returns:
@@ -316,6 +320,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
                     query,
                     variables,
                     operation_name,
+                    scope,
                     info
                 )
 
@@ -416,6 +421,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             body['query'],
             body.get('variables'),
             body.get('operationName'),
+            scope,
             info
         )
 

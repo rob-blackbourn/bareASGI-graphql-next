@@ -38,13 +38,14 @@ class GrapheneController(GraphQLControllerBase):
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str],
+            scope: Scope,
             info: Info
     ) -> MapAsyncIterator:
         return await self.schema.subscribe(
             query,
             variable_values=variables,
             operation_name=operation_name,
-            context_value=info
+            context_value={'scope': scope, 'info': info}
         )
 
     async def query(
@@ -52,13 +53,14 @@ class GrapheneController(GraphQLControllerBase):
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str],
+            scope: Scope,
             info: Info
     ) -> ExecutionResult:
         return await self.schema.execute_async(
             source=query,
             variable_values=variables,
             operation_name=operation_name,
-            context_value=info
+            context_value={'scope': scope, 'info': info}
         )
 
     async def handle_websocket_subscription(
