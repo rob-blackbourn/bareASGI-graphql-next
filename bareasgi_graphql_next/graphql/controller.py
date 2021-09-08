@@ -2,11 +2,21 @@
 GraphQL controller
 """
 
-from typing import Dict, Any, Optional, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    cast
+)
 
 import graphql
 
 from graphql import GraphQLSchema, ExecutionResult
+from graphql.execution import MiddlewareManager
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 from baretypes import (
     Scope,
@@ -25,19 +35,26 @@ class GraphQLController(GraphQLControllerBase):
     def __init__(
             self,
             schema: GraphQLSchema,
-            path_prefix: str = '',
-            middleware=None,
-            ping_interval: float = 10
+            path_prefix: str,
+            middleware: Optional[Union[Tuple, List, MiddlewareManager]],
+            ping_interval: float,
+            loads: Callable[[str], Any],
+            dumps: Callable[[Any], str]
     ) -> None:
         """Create a GraphQL controller
 
         Args:
             schema (GraphQLSchema): The Graphql schema
-            path_prefix (str, optional): The path prefix. Defaults to ''.
-            middleware ([type], optional): The middleware. Defaults to None.
-            ping_interval (float, optional): The WebSocket ping interval. Defaults to 10.
+            path_prefix (str): The path prefix.
+            middleware (Optional[Union[Tuple, List, MiddlewareManager]): The
+                middleware. Defaults to None.
+            ping_interval (float): The WebSocket ping interval.
+            loads (Callable[[str], Any]): The function to convert a JSON string
+                to an object.
+            dumps (Callable[[Any], str]): The function to convert an object to a
+                JSON string.
         """
-        super().__init__(path_prefix, middleware, ping_interval)
+        super().__init__(path_prefix, middleware, ping_interval, loads, dumps)
         self.schema = schema
         self.ws_subscription_handler = GraphQLWebSocketHandler(schema)
 

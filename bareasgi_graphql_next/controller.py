@@ -2,22 +2,29 @@
 
 from abc import ABCMeta, abstractmethod
 import asyncio
-import io
-import json
-import logging
-
 from cgi import parse_multipart
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Mapping
+import io
+import logging
+from typing import (
+    Any,
+    AsyncIterable,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    Union,
+    cast
+)
 from urllib.parse import parse_qs, urlencode
 
 import graphql
-import bareutils.header as header
-
 from graphql import ExecutionResult
+from graphql.execution import MiddlewareManager
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 from bareasgi import Application
-from bareutils import text_reader, text_writer, response_code
 from baretypes import (
     Header,
     HttpResponse,
@@ -28,6 +35,8 @@ from baretypes import (
     WebSocket,
     HttpMiddlewareCallback
 )
+from bareutils import text_reader, text_writer, response_code
+import bareutils.header as header
 
 from .template import make_template
 from .utils import (
@@ -42,25 +51,31 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
-def _make_sse_message(val: Optional[ExecutionResult]) -> str:
-    if val is None:
+def _make_sse_message(
+        execution_result: Optional[ExecutionResult],
+        dumps: Callable[[Any], str]
+) -> str:
+    if execution_result is None:
         return f'event: ping\ndata: {datetime.utcnow()}\n\n'
 
     response = {
-        'data': val.data,
-        'errors': val.errors
+        'data': execution_result.data,
+        'errors': execution_result.errors
     }
 
-    return f'event: message\ndata: {json.dumps(response)}\n\n'
+    return f'event: message\ndata: {dumps(response)}\n\n'
 
 
-def _make_json_message(val: Optional[ExecutionResult]) -> str:
-    if val is None:
+def _make_json_message(
+    execution_result: Optional[ExecutionResult],
+        dumps: Callable[[Any], str]
+) -> str:
+    if execution_result is None:
         return '\n'
 
-    return json.dumps({
-        'data': val.data,
-        'errors': val.errors
+    return dumps({
+        'data': execution_result.data,
+        'errors': execution_result.errors
     }) + '\n'
 
 
@@ -69,13 +84,17 @@ class GraphQLControllerBase(metaclass=ABCMeta):
 
     def __init__(
             self,
-            path_prefix: str = '',
-            middleware=None,
-            ping_interval: float = 10
+            path_prefix: str,
+            middleware: Optional[Union[Tuple, List, MiddlewareManager]],
+            ping_interval: float,
+            loads: Callable[[str], Any],
+            dumps: Callable[[Any], str]
     ) -> None:
         self.path_prefix = path_prefix
         self.middleware = middleware
         self.ping_interval = ping_interval
+        self.loads = loads
+        self.dumps = dumps
         self.cancellation_event = asyncio.Event()
         self.subscription_count = ZeroEvent()
 
@@ -234,22 +253,28 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             web_socket (WebSocket): The web socket to interact with
         """
 
-    @classmethod
     async def _get_query_document(
-            cls,
+            self,
             headers: List[Header],
             content: Content
     ) -> Mapping[str, Any]:
-        content_type, parameters = header.content_type(headers)
+        content_type = header.content_type(headers)
+        if content_type is None:
+            raise ValueError('Content type not specified')
+        media_type, parameters = content_type
 
-        if content_type == b'application/graphql':
+        if media_type == b'application/graphql':
             return {'query': await text_reader(content)}
-        elif content_type in (b'application/json', b'text/plain'):
-            return json.loads(await text_reader(content))
-        elif content_type == b'application/x-www-form-urlencoded':
+        elif media_type in (b'application/json', b'text/plain'):
+            return self.loads(await text_reader(content))
+        elif media_type == b'application/x-www-form-urlencoded':
             body = parse_qs(await text_reader(content))
             return {name: value[0] for name, value in body.items()}
-        elif content_type == b'multipart/form-data':
+        elif media_type == b'multipart/form-data':
+            if parameters is None:
+                raise ValueError(
+                    'Missing content type parameters for multipart/form-data'
+                )
             return {
                 name: value[0]
                 for name, value in parse_multipart(
@@ -296,12 +321,18 @@ class GraphQLControllerBase(metaclass=ABCMeta):
                     # Handle a subscription by returning 201 (Created) with
                     # the url location of the subscription.
                     scheme = scope['scheme']
-                    host = header.find(
-                        b'host', scope['headers'], b'localhost').decode()
+                    host = cast(
+                        bytes,
+                        header.find(  # type: ignore
+                            b'host',
+                            scope['headers'],
+                            b'localhost'
+                        )
+                    ).decode()
                     path = self.path_prefix + '/subscriptions'
                     query_string = urlencode(
                         {
-                            name.encode('utf-8'): json.dumps(value).encode('utf-8')
+                            name.encode('utf-8'): self.dumps(value).encode('utf-8')
                             for name, value in body.items()
                         }
                     )
@@ -329,7 +360,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
                     response['errors'] = [
                         error.formatted for error in result.errors]
 
-                text = json.dumps(response)
+                text = self.dumps(response)
                 headers = [
                     (b'content-type', b'application/json'),
                     (b'content-length', str(len(text)).encode())
@@ -371,8 +402,11 @@ class GraphQLControllerBase(metaclass=ABCMeta):
         )
 
         body = {
-            name.decode('utf-8'): json.loads(value[0].decode('utf-8'))
-            for name, value in parse_qs(scope['query_string']).items()
+            name.decode('utf-8'): self.loads(value[0].decode('utf-8'))
+            for name, value in cast(
+                Dict[bytes, List[bytes]],
+                parse_qs(scope['query_string'])
+            ).items()
         }
 
         return await self._handle_sse(scope, info, body)
@@ -401,8 +435,8 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             scope['http_version']
         )
 
-        content = await text_reader(content)
-        body = json.loads(content)
+        text = await text_reader(content)
+        body = self.loads(text)
 
         return await self._handle_sse(scope, info, body)
 
@@ -414,8 +448,15 @@ class GraphQLControllerBase(metaclass=ABCMeta):
     ) -> HttpResponse:
         """Handle a server sent event style direct subscription"""
 
-        accept = header.find(b'accept', scope['headers'], b'text/event-stream')
-        content_type = b'application/stream+json' if accept == b'application/json' else accept
+        accept = cast(
+            bytes,
+            header.find(b'accept', scope['headers'], b'text/event-stream')
+        )
+        content_type = (
+            b'application/stream+json'
+            if accept == b'application/json'
+            else accept
+        )
 
         result = await self.subscribe(
             body['query'],
@@ -427,7 +468,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
 
         # Make an async iterator for the subscription results.
 
-        async def send_events(zero_event: ZeroEvent):
+        async def send_events(zero_event: ZeroEvent) -> AsyncIterable[bytes]:
             logger.debug('Started SSE subscription')
 
             try:
@@ -439,11 +480,11 @@ class GraphQLControllerBase(metaclass=ABCMeta):
                         timeout=self.ping_interval
                 ):
                     if content_type == b'text/event-stream':
-                        yield _make_sse_message(val).encode('utf-8')
+                        yield _make_sse_message(val, self.dumps).encode('utf-8')
                         # Give the ASGI server a nudge.
                         yield b':\n\n'
                     else:
-                        yield _make_json_message(val).encode('utf-8')
+                        yield _make_json_message(val, self.dumps).encode('utf-8')
                         yield b'\n'
 
             except asyncio.CancelledError:
