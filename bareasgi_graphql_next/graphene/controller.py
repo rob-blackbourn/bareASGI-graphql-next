@@ -1,10 +1,19 @@
 """Graphene support"""
 
-from typing import Any, Dict, Optional
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Union
+)
 
 from baretypes import Scope, Info, RouteMatches, WebSocket
 import graphene
 from graphql import ExecutionResult
+from graphql.execution import MiddlewareManager
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 
 from ..controller import GraphQLControllerBase
@@ -17,19 +26,26 @@ class GrapheneController(GraphQLControllerBase):
     def __init__(
             self,
             schema: graphene.Schema,
-            path_prefix: str = '',
-            middleware=None,
-            ping_interval: float = 10
+            path_prefix: str,
+            middleware: Optional[Union[Tuple, List, MiddlewareManager]],
+            ping_interval: float,
+            loads: Callable[[str], Any],
+            dumps: Callable[[Any], str]
     ) -> None:
         """Create a Graphene controller
 
         Args:
             schema (graphene.Schema): The Graphene schema
-            path_prefix (str, optional): The path prefix. Defaults to ''.
-            middleware ([type], optional): The middleware. Defaults to None.
-            ping_interval (float, optional): The WebSocket ping interval. Defaults to 10.
+            path_prefix (str): The path prefix.
+            middleware (Optional[Union[Tuple, List, MiddlewareManager]): The
+                middleware. Defaults to None.
+            ping_interval (float): The WebSocket ping interval.
+            loads (Callable[[str], Any]): The function to convert a JSON string
+                to an object.
+            dumps (Callable[[Any], str]): The function to convert an object to a
+                JSON string. Defaults to json.dumps.
         """
-        super().__init__(path_prefix, middleware, ping_interval)
+        super().__init__(path_prefix, middleware, ping_interval, loads, dumps)
         self.schema = schema
         self.ws_subscription_handler = GrapheneWebSocketHandler(schema)
 

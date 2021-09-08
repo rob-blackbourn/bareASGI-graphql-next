@@ -34,7 +34,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-4.6.3">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-4.6.3">
     
     
       
@@ -540,16 +540,16 @@ including <a href="https://github.com/facebook/relay">Facebook Relay</a>
 and <a href="https://www.apollographql.com/">Apollo GraphQL</a>. These are feature rich, but the underlying
 mechanism for queries and mutations is just a simple <code>fetch</code> request.</p>
 <p>Here is a code snippet demonstrating a query.</p>
-<div class="codehilite"><pre><span></span><code><span class="kr">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;query { myQuery { someField otherField } }&#39;</span>
-<span class="kr">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
-<span class="kr">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;query { myQuery { someField otherField } }&#39;</span>
+<span class="kd">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
 
-<span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.exammple.com/graphql&#39;</span>
+<span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.exammple.com/graphql&#39;</span>
 
 <span class="c1">// Invoke fetch as a POST with the GraphQL content in the body.</span>
 <span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="p">{</span>
     <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
-    <span class="nx">body</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+    <span class="nx">body</span><span class="o">:</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
     <span class="nx">query</span><span class="p">,</span>
     <span class="nx">variables</span><span class="p">,</span>
     <span class="nx">operationName</span>
@@ -561,12 +561,12 @@ mechanism for queries and mutations is just a simple <code>fetch</code> request.
 </code></pre></div>
 
 <p>We might wrap this up in the following function:</p>
-<div class="codehilite"><pre><span></span><code><span class="kr">export</span> <span class="kr">class</span> <span class="nx">FetchError</span> <span class="kr">extends</span> <span class="nb">Error</span> <span class="p">{</span>
-    <span class="nx">constructor</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="p">...</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kr">super</span><span class="p">(...</span><span class="nx">params</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><code><span class="k">export</span> <span class="kd">class</span> <span class="nx">FetchError</span> <span class="k">extends</span> <span class="ne">Error</span> <span class="p">{</span>
+    <span class="kr">constructor</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="p">...</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">super</span><span class="p">(...</span><span class="nx">params</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="nb">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nb">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">FetchError</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">)</span> <span class="p">{</span>
+        <span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">FetchError</span><span class="p">)</span>
     <span class="p">}</span>
 
     <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s1">&#39;FetchError&#39;</span>
@@ -574,11 +574,11 @@ mechanism for queries and mutations is just a simple <code>fetch</code> request.
     <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="kr">export</span> <span class="kd">function</span> <span class="nx">graphQLClient</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">,</span> <span class="nx">onError</span><span class="p">,</span> <span class="nx">onSuccess</span><span class="p">)</span> <span class="p">{</span>
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">graphQLClient</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">,</span> <span class="nx">onError</span><span class="p">,</span> <span class="nx">onSuccess</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// Invoke fetch as a POST with the GraphQL content in the body.</span>
     <span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="p">{</span>
     <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
-    <span class="nx">body</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+    <span class="nx">body</span><span class="o">:</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
         <span class="nx">query</span><span class="p">,</span>
         <span class="nx">variables</span><span class="p">,</span>
         <span class="nx">operationName</span>
@@ -592,7 +592,7 @@ mechanism for queries and mutations is just a simple <code>fetch</code> request.
             <span class="p">})</span>
             <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">onError</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
         <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-        <span class="nx">onError</span><span class="p">(</span><span class="k">new</span> <span class="nx">FetchError</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="s1">&#39;Failed to execute GraphQL&#39;</span><span class="p">))</span>
+        <span class="nx">onError</span><span class="p">(</span><span class="ow">new</span> <span class="nx">FetchError</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="s1">&#39;Failed to execute GraphQL&#39;</span><span class="p">))</span>
         <span class="p">}</span>
     <span class="p">})</span>
     <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">onError</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
@@ -600,10 +600,10 @@ mechanism for queries and mutations is just a simple <code>fetch</code> request.
 </code></pre></div>
 
 <p>This can then be called like this:</p>
-<div class="codehilite"><pre><span></span><code><span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
-<span class="kr">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;query { someQuery { someField someOtherField } }&#39;</span>
-<span class="kr">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
-<span class="kr">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
+<span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;query { someQuery { someField someOtherField } }&#39;</span>
+<span class="kd">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
 
 <span class="nx">graphQLClient</span><span class="p">(</span>
     <span class="nx">url</span><span class="p">,</span>
@@ -636,27 +636,27 @@ is also supported. While this is uncommon, it is a really good use of SSE, as al
 if from the server to the client.</p>
 <p>The GraphQL controller exposes an endpoint: <code>/sse-subscription?query=...&amp;variables=...&amp;operationName=...</code></p>
 <p>This can be called in the following manner:</p>
-<div class="codehilite"><pre><span></span><code><span class="kr">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="s1">&#39;subscription { mySubscription { name timestamp } }&#39;</span><span class="p">)</span>
-<span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="sb">`http://www.example.com/sse-subscription?query=</span><span class="si">${</span><span class="nx">query</span><span class="si">}</span><span class="sb">`</span>
-<span class="kr">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="s1">&#39;subscription { mySubscription { name timestamp } }&#39;</span><span class="p">)</span>
+<span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="sb">`http://www.example.com/sse-subscription?query=</span><span class="si">${</span><span class="nx">query</span><span class="si">}</span><span class="sb">`</span>
+<span class="kd">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
 <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">event</span> <span class="p">=&gt;</span> <span class="p">{</span>
-    <span class="nx">data</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
+    <span class="nx">data</span> <span class="o">=</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
     <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div>
 
 <p>We could wrap this up in the following manner:</p>
-<div class="codehilite"><pre><span></span><code><span class="kr">export</span> <span class="kd">function</span> <span class="nx">graphQLSubscriber</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">,</span> <span class="nx">onError</span><span class="p">,</span> <span class="nx">onSuccess</span><span class="p">)</span> <span class="p">{</span>
+<div class="codehilite"><pre><span></span><code><span class="k">export</span> <span class="kd">function</span> <span class="nx">graphQLSubscriber</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">,</span> <span class="nx">onError</span><span class="p">,</span> <span class="nx">onSuccess</span><span class="p">)</span> <span class="p">{</span>
     <span class="kd">let</span> <span class="nx">subscriptionUrl</span> <span class="o">=</span> <span class="nx">url</span> <span class="o">+</span> <span class="s1">&#39;?query=&#39;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">query</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="nx">variables</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">subscriptionUrl</span> <span class="o">+=</span> <span class="s1">&#39;&amp;variables=&#39;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">variables</span><span class="p">))</span>
+    <span class="nx">subscriptionUrl</span> <span class="o">+=</span> <span class="s1">&#39;&amp;variables=&#39;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">variables</span><span class="p">))</span>
     <span class="p">}</span>
     <span class="k">if</span> <span class="p">(</span><span class="nx">operationName</span><span class="p">)</span> <span class="p">{</span>
     <span class="nx">subscriptionUrl</span> <span class="o">+=</span> <span class="s1">&#39;&amp;operationName=&#39;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">operationName</span><span class="p">)</span>
     <span class="p">}</span>
 
-    <span class="kr">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">subscriptionUrl</span><span class="p">)</span>
-    <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">event</span> <span class="p">=&gt;</span> <span class="nx">onSuccess</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">))</span>
+    <span class="kd">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">subscriptionUrl</span><span class="p">)</span>
+    <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">event</span> <span class="p">=&gt;</span> <span class="nx">onSuccess</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">))</span>
     <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onerror</span> <span class="o">=</span> <span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">onError</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span>
     <span class="c1">// Return the close function to unsubscribe.</span>
     <span class="k">return</span> <span class="nx">eventSource</span><span class="p">.</span><span class="nx">close</span>
@@ -664,10 +664,10 @@ if from the server to the client.</p>
 </code></pre></div>
 
 <p>This can then be called like this:</p>
-<div class="codehilite"><pre><span></span><code><span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/sse-subscription&#39;</span>
-<span class="kr">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;subscription { someSubscription { someField someOtherField } }&#39;</span>
-<span class="kr">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
-<span class="kr">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/sse-subscription&#39;</span>
+<span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;subscription { someSubscription { someField someOtherField } }&#39;</span>
+<span class="kd">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
 
 <span class="nx">graphQLSubscriber</span><span class="p">(</span>
     <span class="nx">url</span><span class="p">,</span>
@@ -685,12 +685,12 @@ result. For a subscription the status code 201 (CREATED) is returned, and the <c
 the url to be used to request server sent events through the
 <a href="https://developer.mozilla.org/en-US/docs/Web/API/EventSource">EventSource</a> API.</p>
 <p>This means we can provide a single client function to handle all three requests. Here is some sample code that does this.</p>
-<div class="codehilite"><pre><span></span><code><span class="kr">export</span> <span class="kr">class</span> <span class="nx">FetchError</span> <span class="kr">extends</span> <span class="nb">Error</span> <span class="p">{</span>
-    <span class="nx">constructor</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="p">...</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kr">super</span><span class="p">(...</span><span class="nx">params</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><code><span class="k">export</span> <span class="kd">class</span> <span class="nx">FetchError</span> <span class="k">extends</span> <span class="ne">Error</span> <span class="p">{</span>
+    <span class="kr">constructor</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="p">...</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">super</span><span class="p">(...</span><span class="nx">params</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="nb">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nb">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">FetchError</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">)</span> <span class="p">{</span>
+        <span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">FetchError</span><span class="p">)</span>
     <span class="p">}</span>
 
     <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s1">&#39;FetchError&#39;</span>
@@ -698,14 +698,14 @@ the url to be used to request server sent events through the
     <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="kr">export</span> <span class="kd">function</span> <span class="nx">graphQLClient</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">,</span> <span class="nx">onNext</span><span class="p">,</span> <span class="nx">onError</span><span class="p">,</span> <span class="nx">onComplete</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kr">const</span> <span class="nx">abortController</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">AbortController</span><span class="p">()</span>
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">graphQLClient</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">,</span> <span class="nx">onNext</span><span class="p">,</span> <span class="nx">onError</span><span class="p">,</span> <span class="nx">onComplete</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">abortController</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">AbortController</span><span class="p">()</span>
 
     <span class="c1">// Invoke fetch as a POST with the GraphQL content in the body.</span>
     <span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="p">{</span>
     <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
     <span class="nx">signal</span><span class="o">:</span> <span class="nx">abortController</span><span class="p">.</span><span class="nx">signal</span><span class="p">,</span>
-    <span class="nx">body</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+    <span class="nx">body</span><span class="o">:</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
         <span class="nx">query</span><span class="p">,</span>
         <span class="nx">variables</span><span class="p">,</span>
         <span class="nx">operationName</span>
@@ -726,12 +726,12 @@ the url to be used to request server sent events through the
         <span class="c1">// A 201 is the response for a subscription.</span>
 
         <span class="c1">// The url for the event source is passed in the &#39;location&#39; header.</span>
-        <span class="kr">const</span> <span class="nx">location</span> <span class="o">=</span> <span class="nx">response</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">)</span>
+        <span class="kd">const</span> <span class="nx">location</span> <span class="o">=</span> <span class="nx">response</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">)</span>
 
-        <span class="kr">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">location</span><span class="p">)</span>
+        <span class="kd">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">location</span><span class="p">)</span>
 
         <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">event</span> <span class="p">=&gt;</span> <span class="p">{</span>
-            <span class="kr">const</span> <span class="nx">data</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
+            <span class="kd">const</span> <span class="nx">data</span> <span class="o">=</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
             <span class="nx">onNext</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
         <span class="p">}</span>
 
@@ -745,7 +745,7 @@ the url to be used to request server sent events through the
             <span class="p">}</span>
         <span class="p">}</span>
         <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-        <span class="nx">onError</span><span class="p">(</span><span class="k">new</span> <span class="nx">FetchError</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="s1">&#39;Failed to execute GraphQL&#39;</span><span class="p">))</span>
+        <span class="nx">onError</span><span class="p">(</span><span class="ow">new</span> <span class="nx">FetchError</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="s1">&#39;Failed to execute GraphQL&#39;</span><span class="p">))</span>
         <span class="p">}</span>
 
     <span class="p">})</span>
@@ -759,14 +759,14 @@ the url to be used to request server sent events through the
 </code></pre></div>
 
 <p>This can then be called like this:</p>
-<div class="codehilite"><pre><span></span><code><span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
 
 <span class="c1">// This could be a query, mutation or subscription.</span>
-<span class="kr">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;subscription { someSubscription { someField someOtherField } }&#39;</span>
-<span class="kr">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
-<span class="kr">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;subscription { someSubscription { someField someOtherField } }&#39;</span>
+<span class="kd">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
 
-<span class="kr">const</span> <span class="nx">unsubscribe</span> <span class="o">=</span> <span class="nx">graphQLClient</span><span class="p">(</span>
+<span class="kd">const</span> <span class="nx">unsubscribe</span> <span class="o">=</span> <span class="nx">graphQLClient</span><span class="p">(</span>
     <span class="nx">url</span><span class="p">,</span>
     <span class="nx">query</span><span class="p">,</span>
     <span class="nx">variables</span><span class="p">,</span>
@@ -782,14 +782,14 @@ the url to be used to request server sent events through the
 <h2 id="observable">Observable<a class="headerlink" href="#observable" title="Permanent link">&para;</a></h2>
 <p>Clearly the above code roles it's own <em>observable</em> pattern. We can wrap this up with rxjs
 to provide a cleaner client.</p>
-<div class="codehilite"><pre><span></span><code><span class="kr">import</span> <span class="p">{</span> <span class="nx">Observable</span> <span class="p">}</span> <span class="nx">from</span> <span class="s1">&#39;rxjs&#39;</span>
+<div class="codehilite"><pre><span></span><code><span class="k">import</span> <span class="p">{</span> <span class="nx">Observable</span> <span class="p">}</span> <span class="kr">from</span> <span class="s1">&#39;rxjs&#39;</span>
 
-<span class="kr">export</span> <span class="kr">class</span> <span class="nx">FetchError</span> <span class="kr">extends</span> <span class="nb">Error</span> <span class="p">{</span>
-    <span class="nx">constructor</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="p">...</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kr">super</span><span class="p">(...</span><span class="nx">params</span><span class="p">)</span>
+<span class="k">export</span> <span class="kd">class</span> <span class="nx">FetchError</span> <span class="k">extends</span> <span class="ne">Error</span> <span class="p">{</span>
+    <span class="kr">constructor</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="p">...</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">super</span><span class="p">(...</span><span class="nx">params</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="nb">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">)</span> <span class="p">{</span>
-        <span class="nb">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">FetchError</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">)</span> <span class="p">{</span>
+        <span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">FetchError</span><span class="p">)</span>
     <span class="p">}</span>
 
     <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s1">&#39;FetchError&#39;</span>
@@ -797,14 +797,14 @@ to provide a cleaner client.</p>
     <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="kr">export</span> <span class="kd">function</span> <span class="nx">observableGraphQL</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">)</span> <span class="p">{</span>
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">observableGraphQL</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">return</span> <span class="nx">Observable</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">observer</span> <span class="p">=&gt;</span> <span class="p">{</span>
-    <span class="kr">const</span> <span class="nx">abortController</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">AbortController</span><span class="p">()</span>
+    <span class="kd">const</span> <span class="nx">abortController</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">AbortController</span><span class="p">()</span>
 
     <span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="p">{</span>
         <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
         <span class="nx">signal</span><span class="o">:</span> <span class="nx">abortController</span><span class="p">.</span><span class="nx">signal</span><span class="p">,</span>
-        <span class="nx">body</span><span class="o">:</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+        <span class="nx">body</span><span class="o">:</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
         <span class="nx">query</span><span class="p">,</span>
         <span class="nx">variables</span><span class="p">,</span>
         <span class="nx">operationName</span>
@@ -825,12 +825,12 @@ to provide a cleaner client.</p>
             <span class="c1">// A 201 is the response for a subscription.</span>
 
             <span class="c1">// The url for the event source is passed in the &#39;location&#39; header.</span>
-            <span class="kr">const</span> <span class="nx">location</span> <span class="o">=</span> <span class="nx">response</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">)</span>
+            <span class="kd">const</span> <span class="nx">location</span> <span class="o">=</span> <span class="nx">response</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">)</span>
 
-            <span class="kr">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">location</span><span class="p">)</span>
+            <span class="kd">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">location</span><span class="p">)</span>
 
             <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">event</span> <span class="p">=&gt;</span> <span class="p">{</span>
-            <span class="nx">observer</span><span class="p">.</span><span class="nx">next</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">))</span>
+            <span class="nx">observer</span><span class="p">.</span><span class="nx">next</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">))</span>
             <span class="p">}</span>
 
             <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onerror</span> <span class="o">=</span> <span class="nx">error</span> <span class="p">=&gt;</span> <span class="p">{</span>
@@ -843,7 +843,7 @@ to provide a cleaner client.</p>
             <span class="p">}</span>
             <span class="p">}</span>
         <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-            <span class="nx">observer</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="k">new</span> <span class="nx">FetchError</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="s1">&#39;Failed to execute GraphQL&#39;</span><span class="p">))</span>
+            <span class="nx">observer</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="ow">new</span> <span class="nx">FetchError</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="s1">&#39;Failed to execute GraphQL&#39;</span><span class="p">))</span>
         <span class="p">}</span>
         <span class="p">})</span>
         <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">observer</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
@@ -857,14 +857,14 @@ to provide a cleaner client.</p>
 </code></pre></div>
 
 <p>This can then be called like this:</p>
-<div class="codehilite"><pre><span></span><code><span class="kr">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
 
 <span class="c1">// This could be a query, mutation or subscription.</span>
-<span class="kr">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;subscription { someSubscription { someField someOtherField } }&#39;</span>
-<span class="kr">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
-<span class="kr">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;subscription { someSubscription { someField someOtherField } }&#39;</span>
+<span class="kd">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
 
-<span class="kr">const</span> <span class="nx">subscription</span> <span class="o">=</span> <span class="nx">observableGraphQL</span><span class="p">(</span>
+<span class="kd">const</span> <span class="nx">subscription</span> <span class="o">=</span> <span class="nx">observableGraphQL</span><span class="p">(</span>
     <span class="nx">url</span><span class="p">,</span>
     <span class="nx">query</span><span class="p">,</span>
     <span class="nx">variables</span><span class="p">,</span>
@@ -959,7 +959,7 @@ to provide a cleaner client.</p>
     
       <script src="../../assets/javascripts/application.c33a9706.js"></script>
       
-      <script>app.initialize({version:"1.1.2",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.2.2",url:{base:"../.."}})</script>
       
     
   </body>

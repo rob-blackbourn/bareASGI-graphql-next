@@ -34,7 +34,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="../../images/favicon.ico">
-      <meta name="generator" content="mkdocs-1.1.2, mkdocs-material-4.6.3">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-4.6.3">
     
     
       
@@ -1100,7 +1100,11 @@
 <div class="autodoc-argument">
         <var class="autodoc-varname">graphql_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">[type]</span><span class="autodoc-punctuation">,</span></div>
 <div class="autodoc-argument">
-        <var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span></div>
+        <var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">loads</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[str], Any]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">dumps</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[Any], str]</span></div>
 <span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">None</span></div>
 <br />
 <div class="autodoc-parameters">
@@ -1115,7 +1119,12 @@ for the rest end points. Defaults to None.</p>
 for the GraphiQL end point. Defaults to None.</p>
 <var class="autodoc-varname">graphql_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">[type]</span><span class="autodoc-punctuation"> (optional)</span><p>Middleware for graphql-core-next.
 Defaults to None.</p>
-<var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span><span class="autodoc-punctuation"> (optional)</span><p>The time to wait before abandoning an unused subscription. Defaults to 10.</p>
+<var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span><span class="autodoc-punctuation"> (optional)</span><p>The time to wait before abandoning an
+unused subscription. Defaults to 10.</p>
+<var class="autodoc-varname">loads</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[str], Any]</span><span class="autodoc-punctuation"> (optional)</span><p>The function to convert a
+JSON string to an object. Defaults to json.loads.</p>
+<var class="autodoc-varname">dumps</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[Any], str]</span><span class="autodoc-punctuation"> (optional)</span><p>The function to convert an
+object to a JSON string. Defaults to json.dumps.</p>
 </div>
 <div class="autodoc-returns">
 
@@ -1144,17 +1153,26 @@ Defaults to None.</p>
 <div class="autodoc-argument">
         <var class="autodoc-varname">path_prefix</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><span class="autodoc-punctuation">,</span></div>
 <div class="autodoc-argument">
-        <var class="autodoc-varname">middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">[type]</span><span class="autodoc-punctuation">,</span></div>
+        <var class="autodoc-varname">middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[Union[Tuple, List, MiddlewareManager]</span><span class="autodoc-punctuation">,</span></div>
 <div class="autodoc-argument">
-        <var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span></div>
+        <var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">loads</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[str], Any]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">dumps</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[Any], str]</span></div>
 <span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">None</span></div>
 <br />
 <div class="autodoc-parameters">
 <h4 class="autodoc-title" id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">&para;</a></h4>
 <var class="autodoc-varname">schema</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">GraphQLSchema</span><p>The Graphql schema</p>
-<var class="autodoc-varname">path_prefix</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><span class="autodoc-punctuation"> (optional)</span><p>The path prefix. Defaults to ''.</p>
-<var class="autodoc-varname">middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">[type]</span><span class="autodoc-punctuation"> (optional)</span><p>The middleware. Defaults to None.</p>
-<var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span><span class="autodoc-punctuation"> (optional)</span><p>The WebSocket ping interval. Defaults to 10.</p>
+<var class="autodoc-varname">path_prefix</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><p>The path prefix.</p>
+<var class="autodoc-varname">middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[Union[Tuple, List, MiddlewareManager]</span><p>The
+middleware. Defaults to None.</p>
+<var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span><p>The WebSocket ping interval.</p>
+<var class="autodoc-varname">loads</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[str], Any]</span><p>The function to convert a JSON string
+to an object.</p>
+<var class="autodoc-varname">dumps</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[Any], str]</span><p>The function to convert an object to a
+JSON string.</p>
 </div>
 <div class="autodoc-attributes">
 
@@ -1376,6 +1394,8 @@ view middleware. Defaults to None.</p>
 <div class="autodoc-argument">
         <var class="autodoc-varname">operation_name</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[str]</span><span class="autodoc-punctuation">,</span></div>
 <div class="autodoc-argument">
+        <var class="autodoc-varname">scope</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Scope</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
         <var class="autodoc-varname">info</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Info</span></div>
 <span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">ExecutionResult</span></div>
 <br />
@@ -1384,6 +1404,7 @@ view middleware. Defaults to None.</p>
 <var class="autodoc-varname">query</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><p>The subscription query.</p>
 <var class="autodoc-varname">variables</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[Dict[str, Any]]</span><p>Optional variables.</p>
 <var class="autodoc-varname">operation_name</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[str]</span><p>An optional operation name.</p>
+<var class="autodoc-varname">scope</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Scope</span><p>The ASGI scope.</p>
 <var class="autodoc-varname">info</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Info</span><p>The application info.</p>
 </div>
 <div class="autodoc-returns">
@@ -1436,6 +1457,8 @@ view middleware. Defaults to None.</p>
 <div class="autodoc-argument">
         <var class="autodoc-varname">operation_name</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[str]</span><span class="autodoc-punctuation">,</span></div>
 <div class="autodoc-argument">
+        <var class="autodoc-varname">scope</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Scope</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
         <var class="autodoc-varname">info</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Info</span></div>
 <span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">MapAsyncIterator</span></div>
 <br />
@@ -1444,6 +1467,7 @@ view middleware. Defaults to None.</p>
 <var class="autodoc-varname">query</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><p>The subscription query.</p>
 <var class="autodoc-varname">variables</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[Dict[str, Any]]</span><p>Optional variables.</p>
 <var class="autodoc-varname">operation_name</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[str]</span><p>An optional operation name.</p>
+<var class="autodoc-varname">scope</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Scope</span><p>The ASGI scope.</p>
 <var class="autodoc-varname">info</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Info</span><p>The application info.</p>
 </div>
 <div class="autodoc-returns">
@@ -1575,7 +1599,7 @@ view middleware. Defaults to None.</p>
     
       <script src="../../assets/javascripts/application.c33a9706.js"></script>
       
-      <script>app.initialize({version:"1.1.2",url:{base:"../.."}})</script>
+      <script>app.initialize({version:"1.2.2",url:{base:"../.."}})</script>
       
     
   </body>

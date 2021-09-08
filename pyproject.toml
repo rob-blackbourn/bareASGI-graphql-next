@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bareasgi-graphql-next"
-version = "4.0.2"
+version = "4.1.0"
 description = "GraphQL support for the bareASGI framework"
 authors = ["Rob Blackbourn <rob.blackbourn@gmail.com>"]
 license = "Apache-2.0"
@@ -22,8 +22,8 @@ pytest-asyncio = "^0.10"
 pytest-runner = "^5.1"
 uvicorn = "^0.11"
 hypercorn = "^0.7.2"
-pylint = "^2.3"
-mypy = "^0.720.0"
+pylint = "^2.10"
+mypy = "^0.910"
 mkdocs = "^1.0.4"
 mkdocs-material = "^4.6.0"
 jetblack-markdown = "^0.7"
