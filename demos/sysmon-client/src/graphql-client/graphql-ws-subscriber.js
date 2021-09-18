@@ -38,8 +38,10 @@ class Subscriber {
         event.code === 1000 || event.code === 1005
           ? null
           : new EventError(event)
-      // Notify the subscriber.
-      this.callback(error)
+      
+          // Notify this subscriber.
+      this.callback(error, null)
+
       // Notify the subscriptions.
       const callbacks = Array.from(this.subscriptions.values())
       this.subscriptions.clear()
@@ -177,11 +179,10 @@ export default function graphqlWsSubscriber(
     url,
     {},
     (error, subscribe) => {
-      if (!(error || subscribe)) {
-        // Normal closure.
-        onComplete()
-      } else if (error) {
+      if (error) {
         onError(error)
+      } else if (!subscribe) {
+        onComplete()
       } else {
         unsubscribe = subscribe(
           query,

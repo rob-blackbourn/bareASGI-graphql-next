@@ -16,7 +16,7 @@ async def subscribe_to_systems(_root, info: GraphQLResolveInfo, *_args, **_kwarg
     logger.debug('Subscribing to system data')
     system_monitor: SystemMonitor = info.context['info']['system_monitor']
 
-    raise RuntimeError('Oh dear')
+    # raise RuntimeError('Oh dear')
 
     queue = await system_monitor.listen()
 
