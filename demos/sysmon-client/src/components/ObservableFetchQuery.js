@@ -1,6 +1,6 @@
 import { Component } from 'react'
 import { graphqlObservableFetchClient as graphqlObserve } from '../graphql-observable'
-// import { graphqlObservableFetchClient as graphqlObserve } from '@barejs/graphql-observable'
+import CONFIG from '../config'
 
 class ObservableFetchQuery extends Component {
   constructor(props) {
@@ -14,7 +14,7 @@ class ObservableFetchQuery extends Component {
   }
 
   invokeQuery = () => {
-    const url = 'https://beast.jetblack.net:9009/sysmon/graphql'
+    const url = CONFIG.graphqlQueryPath
     const query = `
 query {
   latest {

@@ -23,6 +23,7 @@ from urllib.parse import parse_qs, urlencode
 
 import graphql
 from graphql import ExecutionResult
+from graphql.error.graphql_error import GraphQLError
 from graphql.execution import MiddlewareManager
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 from bareasgi import Application
@@ -61,7 +62,10 @@ def _encode_sse(
     else:
         response = {
             'data': execution_result.data,
-            'errors': execution_result.errors
+            'errors': [
+                error.formatted
+                for error in execution_result.errors
+            ] if execution_result.errors else None
         }
 
         payload = f'event: message\ndata: {dumps(response)}\n\n'
@@ -78,7 +82,10 @@ def _encode_json(
 
     payload = dumps({
         'data': execution_result.data,
-        'errors': execution_result.errors
+        'errors': [
+            error.formatted
+            for error in execution_result.errors
+        ] if execution_result.errors else None
     }) + '\n'
 
     return payload.encode('utf-8')
@@ -483,6 +490,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
 
         is_sse = content_type == b'text/event-stream'
         encode = partial(_encode_sse if is_sse else _encode_json, self.dumps)
+        nudge = b':\n\n' if is_sse else b'\n'
 
         # Make an async iterator for the subscription results.
         async def send_events(zero_event: ZeroEvent) -> AsyncIterable[bytes]:
@@ -497,13 +505,24 @@ class GraphQLControllerBase(metaclass=ABCMeta):
                         timeout=self.ping_interval
                 ):
                     yield encode(val)
-                    # Give the ASGI server a nudge.
-                    yield b':\n\n' if is_sse else b'\n'
+                    yield nudge  # Give the ASGI server a nudge.
 
             except asyncio.CancelledError:
                 LOGGER.debug("Streaming subscription cancelled.")
-            except:  # pylint: disable=bare-except
+            except Exception as error:  # pylint: disable=broad-except
                 LOGGER.exception("Streaming subscription failed.")
+                # If the error is not caught the client fetch will fail, however
+                # the status code and headers have already been sent. So rather
+                # than let the fetch fail we send a GraphQL response with no
+                # data and the error and close gracefully.
+                if not isinstance(error, GraphQLError):
+                    error = GraphQLError(
+                        'Execution error',
+                        original_error=error
+                    )
+                val = ExecutionResult(None, [error])
+                yield encode(val)
+                yield nudge  # Give the ASGI server a nudge.
             finally:
                 zero_event.decrement()
 
