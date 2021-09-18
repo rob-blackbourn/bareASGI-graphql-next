@@ -4,6 +4,7 @@ from abc import ABCMeta, abstractmethod
 import asyncio
 from cgi import parse_multipart
 from datetime import datetime
+from functools import partial
 import io
 import logging
 from typing import (
@@ -48,35 +49,39 @@ from .utils import (
     ZeroEvent
 )
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-def _make_sse_message(
-        execution_result: Optional[ExecutionResult],
-        dumps: Callable[[Any], str]
-) -> str:
+def _encode_sse(
+        dumps: Callable[[Any], str],
+        execution_result: Optional[ExecutionResult]
+) -> bytes:
     if execution_result is None:
-        return f'event: ping\ndata: {datetime.utcnow()}\n\n'
+        payload = f'event: ping\ndata: {datetime.utcnow()}\n\n'
+    else:
+        response = {
+            'data': execution_result.data,
+            'errors': execution_result.errors
+        }
 
-    response = {
-        'data': execution_result.data,
-        'errors': execution_result.errors
-    }
+        payload = f'event: message\ndata: {dumps(response)}\n\n'
 
-    return f'event: message\ndata: {dumps(response)}\n\n'
+    return payload.encode('utf-8')
 
 
-def _make_json_message(
-    execution_result: Optional[ExecutionResult],
-        dumps: Callable[[Any], str]
-) -> str:
+def _encode_json(
+        dumps: Callable[[Any], str],
+        execution_result: Optional[ExecutionResult]
+) -> bytes:
     if execution_result is None:
-        return '\n'
+        return b'\n'
 
-    return dumps({
+    payload = dumps({
         'data': execution_result.data,
         'errors': execution_result.errors
     }) + '\n'
+
+    return payload.encode('utf-8')
 
 
 class GraphQLControllerBase(metaclass=ABCMeta):
@@ -97,50 +102,6 @@ class GraphQLControllerBase(metaclass=ABCMeta):
         self.dumps = dumps
         self.cancellation_event = asyncio.Event()
         self.subscription_count = ZeroEvent()
-
-    @abstractmethod
-    async def subscribe(
-            self,
-            query: str,
-            variables: Optional[Dict[str, Any]],
-            operation_name: Optional[str],
-            scope: Scope,
-            info: Info
-    ) -> MapAsyncIterator:
-        """Execute a subscription.
-
-        Args:
-            query (str): The subscription query.
-            variables (Optional[Dict[str, Any]]): Optional variables.
-            operation_name (Optional[str]): An optional operation name.
-            scope (Scope): The ASGI scope.
-            info (Info): The application info.
-
-        Returns:
-            MapAsyncIterator: An asynchronous iterator of the results.
-        """
-
-    @abstractmethod
-    async def query(
-            self,
-            query: str,
-            variables: Optional[Dict[str, Any]],
-            operation_name: Optional[str],
-            scope: Scope,
-            info: Info
-    ) -> ExecutionResult:
-        """Execute a query
-
-        Args:
-            query (str): The subscription query.
-            variables (Optional[Dict[str, Any]]): Optional variables.
-            operation_name (Optional[str]): An optional operation name.
-            scope (Scope): The ASGI scope.
-            info (Info): The application info.
-
-        Returns:
-            ExecutionResult: The query results.
-        """
 
     def add_routes(
             self,
@@ -173,12 +134,12 @@ class GraphQLControllerBase(metaclass=ABCMeta):
         app.http_router.add(
             {'GET'},
             path_prefix + '/subscriptions',
-            wrap_middleware(rest_middleware, self.handle_sse_get)
+            wrap_middleware(rest_middleware, self.handle_subscription_get)
         )
         app.http_router.add(
             {'POST', 'OPTIONS'},
             path_prefix + '/subscriptions',
-            wrap_middleware(rest_middleware, self.handle_sse_post)
+            wrap_middleware(rest_middleware, self.handle_subscription_post)
         )
 
         # Add the subscription route
@@ -253,6 +214,148 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             web_socket (WebSocket): The web socket to interact with
         """
 
+    async def handle_graphql(
+            self,
+            scope: Scope,
+            info: Info,
+            matches: RouteMatches,
+            content: Content
+    ) -> HttpResponse:
+        """A request handler for graphql queries
+
+        Args:
+            scope (Scope): The ASGI scope
+            info (Info): The application info object
+            matches (RouteMatches): The route matches
+            content (Content): The request body
+
+        Returns:
+            HttpResponse: The HTTP response to the query request
+        """
+
+        try:
+            body = await self._get_query_document(scope['headers'], content)
+
+            query: str = body['query']
+            variables: Optional[Dict[str, Any]] = body.get('variables')
+            operation_name: Optional[str] = body.get('operationName')
+
+            query_document = graphql.parse(query)
+
+            if not has_subscription(query_document):
+                return await self._handle_query_or_mutation(
+                    scope,
+                    info,
+                    query,
+                    variables,
+                    operation_name
+                )
+
+            # The subscription method is determined by the `allow` header.
+            allow = header.find(b'allow', scope['headers'], b'GET')
+            if allow == b'GET':
+                return self._handle_subscription_redirect(scope, body)
+
+            return await self._handle_streaming_subscription(
+                scope,
+                info,
+                query,
+                variables,
+                operation_name
+            )
+
+        # pylint: disable=bare-except
+        except:
+            text = 'Internal server error'
+            headers = [
+                (b'content-type', b'text/plain'),
+                (b'content-length', str(len(text)).encode())
+            ]
+            return response_code.INTERNAL_SERVER_ERROR, headers, text_writer(text)
+
+    async def handle_subscription_get(
+            self,
+            scope: Scope,
+            info: Info,
+            matches: RouteMatches,
+            content: Content
+    ) -> HttpResponse:
+        """Handle a streaming subscription
+
+        Args:
+            scope (Scope): The ASGI scope
+            info (Info): The application info object
+            matches (RouteMatches): The route matches
+            content (Content): The request body
+
+        Returns:
+            HttpResponse: The streaming response
+        """
+
+        LOGGER.debug(
+            "Received GET streaming subscription request: http_version='%s'.",
+            scope['http_version']
+        )
+
+        body = {
+            name.decode('utf-8'): self.loads(value[0].decode('utf-8'))
+            for name, value in cast(
+                Dict[bytes, List[bytes]],
+                parse_qs(scope['query_string'])
+            ).items()
+        }
+
+        query: str = body['query']
+        variables: Optional[Dict[str, Any]] = body.get('variables')
+        operation_name: Optional[str] = body.get('operationName')
+
+        return await self._handle_streaming_subscription(
+            scope,
+            info,
+            query,
+            variables,
+            operation_name
+        )
+
+    async def handle_subscription_post(
+            self,
+            scope: Scope,
+            info: Info,
+            matches: RouteMatches,
+            content: Content
+    ) -> HttpResponse:
+        """Handle a streaming subscription
+
+        Args:
+            scope (Scope): The ASGI scope
+            info (Info): The application info object
+            matches (RouteMatches): The route matches
+            content (Content): The request body
+
+        Returns:
+            HttpResponse: A stream response
+        """
+
+        LOGGER.debug(
+            "Received POST streaming subscription request: http_version='%s'.",
+            scope['http_version']
+        )
+
+        text = await text_reader(content)
+        body = self.loads(text)
+
+        query: str = body['query']
+        variables: Optional[Dict[str, Any]] = body.get('variables')
+        operation_name: Optional[str] = body.get('operationName')
+
+        return await self._handle_streaming_subscription(
+            scope,
+            info,
+            query,
+            variables,
+            operation_name
+        )
+
     async def _get_query_document(
             self,
             headers: List[Header],
@@ -284,170 +387,82 @@ class GraphQLControllerBase(metaclass=ABCMeta):
                 ).items()
             }
         else:
-            raise RuntimeError('Content type not supported')
+            raise RuntimeError(
+                f"Unsupported content type: {media_type.decode('ascii')}"
+            )
 
-    # pylint: disable=unused-argument
-    async def handle_graphql(
+    async def _handle_query_or_mutation(
             self,
             scope: Scope,
             info: Info,
-            matches: RouteMatches,
-            content: Content
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str]
     ) -> HttpResponse:
-        """A request handler for graphql queries
+        LOGGER.debug("Processing a query or mutation.")
 
-        Args:
-            scope (Scope): The ASGI scope
-            info (Info): The application info object
-            matches (RouteMatches): The route matches
-            content (Content): The request body
-
-        Returns:
-            HttpResponse: The HTTP response to the query request
-        """
-
-        try:
-            body = await self._get_query_document(scope['headers'], content)
-
-            query: str = body['query']
-            variables: Optional[Dict[str, Any]] = body.get('variables')
-            operation_name: Optional[str] = body.get('operationName')
-
-            query_document = graphql.parse(query)
-
-            if has_subscription(query_document):
-                method = header.find(b'allow', scope['headers'], b'GET')
-                if method == b'GET':
-                    # Handle a subscription by returning 201 (Created) with
-                    # the url location of the subscription.
-                    scheme = scope['scheme']
-                    host = cast(
-                        bytes,
-                        header.find(  # type: ignore
-                            b'host',
-                            scope['headers'],
-                            b'localhost'
-                        )
-                    ).decode()
-                    path = self.path_prefix + '/subscriptions'
-                    query_string = urlencode(
-                        {
-                            name.encode('utf-8'): self.dumps(value).encode('utf-8')
-                            for name, value in body.items()
-                        }
-                    )
-                    location = f'{scheme}://{host}{path}'
-                    location += f'?{query_string}'
-                    headers = [
-                        (b'access-control-expose-headers', b'location'),
-                        (b'location', location.encode('ascii'))
-                    ]
-                    return response_code.CREATED, headers
-                else:
-                    return await self._handle_sse(scope, info, body)
-            else:
-                # Handle a query
-                result = await self.query(
-                    query,
-                    variables,
-                    operation_name,
-                    scope,
-                    info
-                )
-
-                response: Dict[str, Any] = {'data': result.data}
-                if result.errors:
-                    response['errors'] = [
-                        error.formatted for error in result.errors]
-
-                text = self.dumps(response)
-                headers = [
-                    (b'content-type', b'application/json'),
-                    (b'content-length', str(len(text)).encode())
-                ]
-
-                return 200, headers, text_writer(text)
-
-        # pylint: disable=bare-except
-        except:
-            text = 'Internal server error'
-            headers = [
-                (b'content-type', b'text/plain'),
-                (b'content-length', str(len(text)).encode())
-            ]
-            return response_code.INTERNAL_SERVER_ERROR, headers, text_writer(text)
-
-    async def handle_sse_get(
-            self,
-            scope: Scope,
-            info: Info,
-            matches: RouteMatches,
-            content: Content
-    ) -> HttpResponse:
-        """Handle a server sent event style direct subscription
-
-        Args:
-            scope (Scope): The ASGI scope
-            info (Info): The application info object
-            matches (RouteMatches): The route matches
-            content (Content): The request body
-
-        Returns:
-            HttpResponse: The streaming response
-        """
-
-        logger.debug(
-            'SSE received GET subscription request: http_version=%s',
-            scope['http_version']
+        result = await self.query(
+            query,
+            variables,
+            operation_name,
+            scope,
+            info
         )
 
-        body = {
-            name.decode('utf-8'): self.loads(value[0].decode('utf-8'))
-            for name, value in cast(
-                Dict[bytes, List[bytes]],
-                parse_qs(scope['query_string'])
-            ).items()
-        }
+        response: Dict[str, Any] = {'data': result.data}
+        if result.errors:
+            response['errors'] = [
+                error.formatted for error in result.errors]
 
-        return await self._handle_sse(scope, info, body)
+        text = self.dumps(response)
+        headers = [
+            (b'content-type', b'application/json'),
+            (b'content-length', str(len(text)).encode())
+        ]
 
-    async def handle_sse_post(
+        return 200, headers, text_writer(text)
+
+    def _handle_subscription_redirect(
             self,
             scope: Scope,
-            info: Info,
-            matches: RouteMatches,
-            content: Content
-    ) -> HttpResponse:
-        """Handle a server sent event style direct subscription
-
-        Args:
-            scope (Scope): The ASGI scope
-            info (Info): The application info object
-            matches (RouteMatches): The route matches
-            content (Content): The request body
-
-        Returns:
-            HttpResponse: A stream response
-        """
-
-        logger.debug(
-            'SSE received POST subscription request: http_version=%s',
-            scope['http_version']
-        )
-
-        text = await text_reader(content)
-        body = self.loads(text)
-
-        return await self._handle_sse(scope, info, body)
-
-    async def _handle_sse(
-            self,
-            scope: Scope,
-            info: Info,
             body: Mapping[str, Any]
     ) -> HttpResponse:
-        """Handle a server sent event style direct subscription"""
+        # Handle a subscription by returning 201 (Created) with
+        # the url location of the subscription.
+        LOGGER.debug("Redirecting subscription request.")
+        scheme = scope['scheme']
+        host = cast(
+            bytes,
+            header.find(  # type: ignore
+                b'host',
+                scope['headers'],
+                b'localhost'
+            )
+        ).decode()
+        path = self.path_prefix + '/subscriptions'
+        query_string = urlencode(
+            {
+                name.encode('utf-8'): self.dumps(value).encode('utf-8')
+                for name, value in body.items()
+            }
+        )
+        location = f'{scheme}://{host}{path}?{query_string}'.encode('ascii')
+        headers = [
+            (b'access-control-expose-headers', b'location'),
+            (b'location', location)
+        ]
+        return response_code.CREATED, headers
 
+    async def _handle_streaming_subscription(
+            self,
+            scope: Scope,
+            info: Info,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str]
+    ) -> HttpResponse:
+
+        # If unspecified default to server sent events as they have better support.
         accept = cast(
             bytes,
             header.find(b'accept', scope['headers'], b'text/event-stream')
@@ -459,17 +474,19 @@ class GraphQLControllerBase(metaclass=ABCMeta):
         )
 
         result = await self.subscribe(
-            body['query'],
-            body.get('variables'),
-            body.get('operationName'),
+            query,
+            variables,
+            operation_name,
             scope,
             info
         )
 
-        # Make an async iterator for the subscription results.
+        is_sse = content_type == b'text/event-stream'
+        encode = partial(_encode_sse if is_sse else _encode_json, self.dumps)
 
+        # Make an async iterator for the subscription results.
         async def send_events(zero_event: ZeroEvent) -> AsyncIterable[bytes]:
-            logger.debug('Started SSE subscription')
+            LOGGER.debug('Streaming subscription started.')
 
             try:
                 zero_event.increment()
@@ -479,26 +496,67 @@ class GraphQLControllerBase(metaclass=ABCMeta):
                         self.cancellation_event,
                         timeout=self.ping_interval
                 ):
-                    if content_type == b'text/event-stream':
-                        yield _make_sse_message(val, self.dumps).encode('utf-8')
-                        # Give the ASGI server a nudge.
-                        yield b':\n\n'
-                    else:
-                        yield _make_json_message(val, self.dumps).encode('utf-8')
-                        yield b'\n'
+                    yield encode(val)
+                    # Give the ASGI server a nudge.
+                    yield b':\n\n' if is_sse else b'\n'
 
             except asyncio.CancelledError:
-                logger.debug("Cancelled SSE subscription")
+                LOGGER.debug("Streaming subscription cancelled.")
+            except:  # pylint: disable=bare-except
+                LOGGER.exception("Streaming subscription failed.")
             finally:
                 zero_event.decrement()
 
-            logger.debug('Stopped SSE subscription')
+            LOGGER.debug("Streaming subscription stopped.")
 
         headers = [
             (b'cache-control', b'no-cache'),
-            # (b'content-type', b'text/event-stream'),
             (b'content-type', content_type),
             (b'connection', b'keep-alive')
         ]
 
         return response_code.OK, headers, send_events(self.subscription_count)
+
+    @abstractmethod
+    async def subscribe(
+            self,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str],
+            scope: Scope,
+            info: Info
+    ) -> MapAsyncIterator:
+        """Execute a subscription.
+
+        Args:
+            query (str): The subscription query.
+            variables (Optional[Dict[str, Any]]): Optional variables.
+            operation_name (Optional[str]): An optional operation name.
+            scope (Scope): The ASGI scope.
+            info (Info): The application info.
+
+        Returns:
+            MapAsyncIterator: An asynchronous iterator of the results.
+        """
+
+    @abstractmethod
+    async def query(
+            self,
+            query: str,
+            variables: Optional[Dict[str, Any]],
+            operation_name: Optional[str],
+            scope: Scope,
+            info: Info
+    ) -> ExecutionResult:
+        """Execute a query
+
+        Args:
+            query (str): The subscription query.
+            variables (Optional[Dict[str, Any]]): Optional variables.
+            operation_name (Optional[str]): An optional operation name.
+            scope (Scope): The ASGI scope.
+            info (Info): The application info.
+
+        Returns:
+            ExecutionResult: The query results.
+        """

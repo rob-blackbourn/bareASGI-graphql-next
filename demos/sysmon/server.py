@@ -5,7 +5,6 @@ Server
 import asyncio
 import logging
 import os
-import socket
 from typing import Optional
 
 from hypercorn.asyncio import serve
@@ -19,7 +18,42 @@ LOGGER = logging.getLogger(__name__)
 
 def initialise_logging() -> None:
     """Initialise logging"""
-    logging.basicConfig(level=logging.DEBUG)
+    logging.config.dictConfig({
+        'version': 1,
+        'formatters': {
+            'simple': {
+                'format': "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            }
+        },
+        'handlers': {
+            'stdout': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'simple',
+                'stream': 'ext://sys.stdout'
+            }
+        },
+        'loggers': {
+            __name__: {
+                'level': 'DEBUG',
+                'handlers': ['stdout'],
+                'propagate': False
+            },
+            'bareasgi_graphql_next': {
+                'level': 'DEBUG',
+                'handlers': ['stdout'],
+                'propagate': False
+            },
+            'bareasgi': {
+                'level': 'DEBUG',
+                'handlers': ['stdout'],
+                'propagate': False
+            }
+        },
+        'root': {
+            'level': 'DEBUG',
+            'handlers': ['stdout']
+        }
+    })
 
 
 def start_uvicorn_server(
@@ -62,7 +96,7 @@ def start_hypercorn_server(
         web_config.keyfile = keyfile
         web_config.certfile = certfile
 
-    asyncio.run(serve(app, web_config))
+    asyncio.run(serve(app, web_config))  # type: ignore
 
 
 def start_http_server(
@@ -85,14 +119,15 @@ def start_http_server(
 
 def start_server() -> None:
     """Start the server"""
-    hostname = socket.gethostname()
 
     http_server = 'hypercorn'  # 'hypercorn' or 'uvicorn'
     host = '0.0.0.0'
     port = 9009
-    ssl_enabled = False
-    keyfile = os.path.expanduser(f'~/.keys/{hostname}.key')
-    certfile = os.path.expanduser(f'~/.keys/{hostname}.crt')
+    ssl_enabled = True
+    certfile = os.path.expanduser('~/.keys/server.crt')
+    keyfile = os.path.expanduser('~/.keys/server.key')
+    # certfile = os.path.expanduser('~/.keys/www.jetblack.net.crt')
+    # keyfile = os.path.expanduser('~/.keys/www.jetblack.net.key')
 
     initialise_logging()
     start_http_server(http_server, host, port, ssl_enabled, keyfile, certfile)

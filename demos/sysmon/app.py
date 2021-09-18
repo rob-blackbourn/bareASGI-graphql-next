@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 async def start_service(_scope: Scope, info: Info, _request: Message) -> None:
     """Start the service"""
-    system_monitor = SystemMonitor(30)
+    system_monitor = SystemMonitor(1)
 
     info['system_monitor'] = system_monitor
     info['system_monitor_task'] = asyncio.create_task(system_monitor.startup())
@@ -45,7 +45,7 @@ async def graphql_handler(
 ) -> HttpResponse:
     """Handle a graphql request"""
     host = header.find(b'host', scope['headers']).decode()
-    sse_url = f"{scope['scheme']}://{host}/test/graphql"
+    sse_url = f"{scope['scheme']}://{host}/sysmon/graphql"
     html = info['page_template'].substitute(sse_url=sse_url)
     return 200, [(b'content-type', b'text/html')], text_writer(html)
 
@@ -65,8 +65,8 @@ def make_application() -> Application:
         shutdown_handlers=[stop_service],
         middlewares=[cors_middleware]
     )
-    add_graphql_next(app, schema, '/test')
+    add_graphql_next(app, schema, '/sysmon')
 
-    app.http_router.add({'GET'}, '/test/graphql2', graphql_handler)
+    app.http_router.add({'GET'}, '/sysmon/graphql2', graphql_handler)
 
     return app
