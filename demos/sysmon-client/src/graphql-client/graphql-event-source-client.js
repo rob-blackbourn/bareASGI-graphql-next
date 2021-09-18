@@ -29,7 +29,7 @@ export default function graphqlEventSourceClient(
     {
       method: 'POST',
       headers: {
-        allow: 'POST',
+        allow: 'GET',
         'content-type': 'application/json',
         accept: 'application/json'
       },

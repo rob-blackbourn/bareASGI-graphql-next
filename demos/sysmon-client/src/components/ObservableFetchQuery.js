@@ -26,16 +26,17 @@ query {
 }`
     const variables = {}
     const operation = null
+    const init = {
+      method: 'post',
+      mode: 'cors',
+      headers: {
+        allow: 'post'
+      }
+    }
 
     return graphqlObserve(
       url,
-      {
-        method: 'post',
-        mode: 'cors',
-        headers: {
-          allow: 'post'
-        }
-      },
+      init,
       query,
       variables,
       operation

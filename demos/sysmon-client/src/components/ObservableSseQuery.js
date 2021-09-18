@@ -1,8 +1,8 @@
 import { Component } from 'react'
-import { graphqlObservableStreamClient as graphqlObserve } from '../graphql-observable'
+import { graphqlObservableEventSourceClient as graphqlObserve } from '../graphql-observable'
 import CONFIG from '../config'
 
-class ObservableStreamQuery extends Component {
+class ObservableSseQuery extends Component {
   constructor(props) {
     super()
     this.subscription = null
@@ -27,11 +27,7 @@ query {
     const variables = {}
     const operation = null
     const init = {
-      method: 'post',
-      mode: 'cors',
-      headers: {
-        allow: 'post'
-      }
+      mode: 'cors'
     }
 
     return graphqlObserve(
@@ -82,4 +78,4 @@ query {
   }
 }
 
-export default ObservableStreamQuery
+export default ObservableSseQuery

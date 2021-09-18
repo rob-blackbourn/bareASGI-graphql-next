@@ -1,8 +1,8 @@
 import { Component } from 'react'
-import { graphqlObservableStreamClient as graphqlObserve } from '../graphql-observable'
+import { graphqlObservableWsClient as graphqlObserve } from '../graphql-observable'
 import CONFIG from '../config'
 
-class ObservableStreamQuery extends Component {
+class ObservableWsQuery extends Component {
   constructor(props) {
     super()
     this.subscription = null
@@ -26,13 +26,7 @@ query {
 }`
     const variables = {}
     const operation = null
-    const init = {
-      method: 'post',
-      mode: 'cors',
-      headers: {
-        allow: 'post'
-      }
-    }
+    const init = {}
 
     return graphqlObserve(
       url,
@@ -82,4 +76,4 @@ query {
   }
 }
 
-export default ObservableStreamQuery
+export default ObservableWsQuery
