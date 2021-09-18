@@ -115,10 +115,13 @@ class Subscriber {
         // This message is sent after GQL.START to transfer the result of the GraphQL subscription.
         const callback = this.subscriptions.get(data.id)
         if (callback) {
-          const error = data.payload.errors
-            ? new GraphQLError(data.payload.errors)
-            : null
-          callback(error, data.payload.data)
+          const response = {
+            data: data.payload.data,
+            errors: data.payload.errors
+              ? data.payload.errors.map(error => new GraphQLError(error))
+              : null
+          }
+          callback(null, response)
         }
         break
       }
@@ -184,12 +187,12 @@ export default function graphqlWsSubscriber(
           query,
           variables,
           operationName,
-          (errors, data) => {
-            if (!(errors || subscribe)) {
+          (error, response) => {
+            if (!(subscribe)) {
               // Normal closure
               onComplete()
             } else {
-              onNext({ data, errors })
+              onNext(response)
             }
           }
         )

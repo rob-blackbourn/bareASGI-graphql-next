@@ -251,16 +251,12 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
             await self.web_socket.send(self._to_message(GQL_COMPLETE, id_))
         except asyncio.CancelledError:
             pass
-        except GraphQLError as error:
-            await self._send_execution_result(id_, ExecutionResult(errors=[error]))
-            await self.web_socket.send(self._to_message(GQL_COMPLETE, id_))
         except Exception as error:  # pylint: disable=broad-except
-            errors = [
-                GraphQLError('Unhandled error', original_error=error)
-            ]
+            if not isinstance(error, GraphQLError):
+                error = GraphQLError('Execution error', original_error=error)
             await self._send_execution_result(
                 id_,
-                ExecutionResult(errors=errors)
+                ExecutionResult(errors=[error])
             )
             await self.web_socket.send(self._to_message(GQL_COMPLETE, id_))
 
@@ -298,8 +294,10 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
             result["data"] = execution_result.data
 
         if execution_result.errors:
-            result["errors"] = [graphql.format_error(
-                error) for error in execution_result.errors]
+            result["errors"] = [
+                error.formatted
+                for error in execution_result.errors
+            ]
 
         await self.web_socket.send(self._to_message(GQL_DATA, id_, result))
 

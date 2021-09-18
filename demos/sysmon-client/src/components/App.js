@@ -1,9 +1,10 @@
 import { Component } from 'react'
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
-import Example1 from './Example1'
+import Home from './Home'
 import ObservableFetchQuery from './ObservableFetchQuery'
 import ObservableStreamQuery from './ObservableStreamQuery'
 import ObservableStreamSubscription from './ObservableStreamSubscription'
+import ObservableWsSubscription from './ObservableWsSubscription'
 
 class App extends Component {
   render() {
@@ -13,9 +14,6 @@ class App extends Component {
           <nav>
             <ul>
               <li>
-                <Link to="/">Example1</Link>
-              </li>
-              <li>
                 <Link to="/observable-stream-subscription">ObservableStreamSubscription</Link>
               </li>
               <li>
@@ -23,6 +21,9 @@ class App extends Component {
               </li>
               <li>
                 <Link to="/observable-fetch-query">ObservableFetchQuery</Link>
+              </li>
+              <li>
+                <Link to="/observable-ws-subscription">ObservableWsSubscription</Link>
               </li>
             </ul>
           </nav>
@@ -37,8 +38,11 @@ class App extends Component {
             <Route path="/observable-stream-subscription">
               <ObservableStreamSubscription />
             </Route>
+            <Route path="/observable-ws-subscription">
+              <ObservableWsSubscription />
+            </Route>
             <Route path="/">
-              <Example1 />
+              <Home />
             </Route>
           </Switch>
         </div>

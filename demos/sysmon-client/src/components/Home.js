@@ -1,14 +1,14 @@
 import { Component } from 'react'
 import Typography from '@mui/material/Typography'
 
-class Example1 extends Component {
+class Home extends Component {
   render() {
     return (
       <div>
-        <Typography variant="h2">Example 1</Typography>
+        <Typography variant="h4">Click on a GraphQL example</Typography>
       </div>
     )
   }
 }
 
-export default Example1
+export default Home
