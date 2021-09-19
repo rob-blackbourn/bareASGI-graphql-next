@@ -1,11 +1,10 @@
 import { Component } from 'react'
 import QUERIES from '../queries'
 import CONFIG from '../config'
-import {
-  renderRequestTypeSelector,
-  renderRequestComplexitySelector,
-  renderClientTypeSelector
-} from './Selectables'
+import RequestTypeSelector from './RequestTypeSelector'
+import RequestComplexitySelector from './RequestComplexitySelector'
+import ClientTypeSelector from './ClientTypeSelector'
+import DiagnosticView from './DiagnosticView'
 import CLIENTS from './clients'
 
 class Home extends Component {
@@ -16,7 +15,7 @@ class Home extends Component {
       requestType: 'query',
       requestComplexity: 'simple',
       clientType: 'fetch',
-      response: '',
+      response: {},
       complete: false,
       error: ''
     }
@@ -26,45 +25,32 @@ class Home extends Component {
 
   handleRequestTypeChange = event => {
     this.setState(
-      { 
-        requestType: event.target.value,
-        response: '',
-        complete: false,
-        error: ''
+      {
+        requestType: event.target.value
       },
-      this.startSubscription)
+      this.startSubscription
+    )
   }
 
   handleRequestComplexityChange = event => {
-    this.setState(
-      { 
-        requestComplexity: event.target.value,
-        response: '',
-        complete: false,
-        error: ''
-      },
-      this.startSubscription)
+    const requestComplexity = event.target.value
+    this.setState({ requestComplexity }, this.startSubscription)
   }
 
   handleClientTypeChange = event => {
-    const requestType = event.target.value === 'fetch' ? 'query' : this.state.requestType
-    this.setState(
-      {
-        clientType: event.target.value,
-        requestType,
-        response: '',
-        complete: false,
-        error: ''
-      },
-      this.startSubscription)
+    const clientType = event.target.value
+    const requestType =
+      clientType === 'fetch' ? 'query' : this.state.requestType
+    this.setState({ clientType, requestType }, this.startSubscription)
   }
 
   startSubscription = () => {
-    const {requestType, requestComplexity, clientType} = this.state
+    const { requestType, requestComplexity, clientType } = this.state
 
     const query = QUERIES[requestType][requestComplexity]
     const graphqlObserve = CLIENTS[clientType]
 
+    console.log(query)
     this.stopSubscription()
 
     const url = CONFIG.graphqlQueryPath
@@ -82,18 +68,19 @@ class Home extends Component {
       operation
     ).subscribe({
       next: response => {
-        console.log(response)
-        this.setState({ response })
+        this.setState({ response, completed: false, error: '' })
       },
       complete: () => {
-        console.log('complete')
-        this.setState({ complete: true })
+        this.setState({ complete: true, error: '' })
       },
       error: error => {
-        console.error(error)
-        this.setState({ error })
+        this.setState({
+          response: {},
+          completed: false,
+          error: error ? error.message : 'Unknown error'
+        })
       }
-    })  
+    })
   }
 
   stopSubscription = () => {
@@ -111,25 +98,34 @@ class Home extends Component {
     this.stopSubscription()
   }
 
-  renderSelectors = (requestType, requestComplexity, clientType) => (
-    <div>
-    {renderRequestTypeSelector(requestType, clientType, this.handleRequestTypeChange)}
-    {renderRequestComplexitySelector(requestComplexity, this.handleRequestComplexityChange)}
-    {renderClientTypeSelector(clientType, this.handleClientTypeChange)}
-    </div>
-  )
-  
   render() {
-    const { requestType, requestComplexity, clientType, response, complete, error } = this.state
+    const {
+      requestType,
+      requestComplexity,
+      clientType,
+      response,
+      complete,
+      error
+    } = this.state
 
     return (
       <div>
-        {this.renderSelectors(requestType, requestComplexity, clientType)}
         <div>
-          <div>Response: {JSON.stringify(response)}</div>
-          <div>Complete: {complete ? 'true' : 'false'}</div>
-          <div>Error: {error.message}</div>
+          <RequestTypeSelector
+            requestType={requestType}
+            clientType={clientType}
+            handler={this.handleRequestTypeChange}
+          />
+          <RequestComplexitySelector
+            requestComplexity={requestComplexity}
+            handler={this.handleRequestComplexityChange}
+          />
+          <ClientTypeSelector
+            clientType={clientType}
+            handler={this.handleClientTypeChange}
+          />
         </div>
+        <DiagnosticView response={response} complete={complete} error={error} />
       </div>
     )
   }

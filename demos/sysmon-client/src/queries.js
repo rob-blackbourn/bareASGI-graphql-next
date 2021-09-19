@@ -83,6 +83,7 @@ subscription {
       }
     }
   }
+}
 `
 
 const QUERIES = {
