@@ -79,7 +79,8 @@ export default function graphqlStreamClient(
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        accept: 'application/json'
+        accept: 'application/json',
+        allow: 'POST'
       },
       body: JSON.stringify({
         query,

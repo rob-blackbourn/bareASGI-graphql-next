@@ -2,6 +2,7 @@ import { Component } from 'react'
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
 import Home from './Home'
 import GraphQLObservableClient from './GraphQLObservableClient'
+import DiagnoseObservableClient from './DiagnoseObservableClient'
 import {
   graphqlObservableFetchClient,
   graphqlObservableEventSourceClient,
@@ -17,6 +18,9 @@ class App extends Component {
         <div>
           <nav>
             <ul>
+              <li>
+                <Link to="/diagnose-observable-client">Diagnose observable client</Link>
+              </li>
               <li>
                 <Link to="/observable-fetch-query">ObservableFetchQuery</Link>
               </li>
@@ -42,6 +46,9 @@ class App extends Component {
           </nav>
 
           <Switch>
+            <Route path="/diagnose-observable-client">
+              <DiagnoseObservableClient />
+            </Route>
             <Route path="/observable-fetch-query">
               <GraphQLObservableClient
                 graphqlObserve={graphqlObservableFetchClient}
