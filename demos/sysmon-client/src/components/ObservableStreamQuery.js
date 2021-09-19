@@ -27,11 +27,7 @@ query {
     const variables = {}
     const operation = null
     const init = {
-      method: 'post',
-      mode: 'cors',
-      headers: {
-        allow: 'post'
-      }
+      mode: 'cors'
     }
 
     return graphqlObserve(
