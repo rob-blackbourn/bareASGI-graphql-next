@@ -1,10 +1,10 @@
 import { Component } from 'react'
-import { graphqlObservableStreamClient as graphqlObserve } from '../graphql-observable'
+import PropTypes from 'prop-types'
 import CONFIG from '../config'
 
-class ObservableStreamQuery extends Component {
+class GraphQLObservableClient extends Component {
   constructor(props) {
-    super()
+    super(props)
     this.subscription = null
     this.state = {
       response: '',
@@ -15,20 +15,7 @@ class ObservableStreamQuery extends Component {
 
   invokeQuery = () => {
     const url = CONFIG.graphqlQueryPath
-    const query = `
-query {
-  latest {
-    timestamp
-    cpu {
-      percent
-    }
-  }
-}`
-    const variables = {}
-    const operation = null
-    const init = {
-      mode: 'cors'
-    }
+    const {graphqlObserve, query, variables, init, operation} = this.props
 
     return graphqlObserve(
       url,
@@ -78,4 +65,12 @@ query {
   }
 }
 
-export default ObservableStreamQuery
+GraphQLObservableClient.propTypes = {
+  graphqlObserve: PropTypes.func.isRequired,
+  query: PropTypes.string.isRequired,
+  variables: PropTypes.object.isRequired,
+  init: PropTypes.object.isRequired,
+  operation: PropTypes.string
+}
+
+export default GraphQLObservableClient

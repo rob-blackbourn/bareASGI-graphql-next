@@ -1,13 +1,33 @@
 import { Component } from 'react'
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom'
 import Home from './Home'
-import ObservableFetchQuery from './ObservableFetchQuery'
-import ObservableStreamQuery from './ObservableStreamQuery'
-import ObservableStreamSubscription from './ObservableStreamSubscription'
-import ObservableWsQuery from './ObservableWsQuery'
-import ObservableWsSubscription from './ObservableWsSubscription'
-import ObservableSseQuery from './ObservableSseQuery'
-import ObservableSseSubscription from './ObservableSseSubscription'
+import GraphQLObservableClient from './GraphQLObservableClient'
+import {
+  graphqlObservableFetchClient,
+  graphqlObservableEventSourceClient,
+  graphqlObservableStreamClient,
+  graphqlObservableWsClient
+} from '../graphql-observable'
+
+const SIMPLE_QUERY = `
+query {
+  latest {
+    timestamp
+    cpu {
+      percent
+    }
+  }
+}`
+
+const SIMPLE_SUBSCRIPTION = `
+subscription {
+  system {
+    timestamp
+    cpu {
+      percent
+    }
+  }
+}`
 
 class App extends Component {
   render() {
@@ -42,25 +62,67 @@ class App extends Component {
 
           <Switch>
             <Route path="/observable-fetch-query">
-              <ObservableFetchQuery />
+              <GraphQLObservableClient
+                graphqlObserve={graphqlObservableFetchClient}
+                query={SIMPLE_QUERY}
+                variables={{}}
+                init={{ mode: 'cores'}}
+                operation={null}
+                />
             </Route>
             <Route path="/observable-stream-query">
-              <ObservableStreamQuery />
+              <GraphQLObservableClient
+                graphqlObserve={graphqlObservableStreamClient}
+                query={SIMPLE_QUERY}
+                variables={{}}
+                init={{ mode: 'cores'}}
+                operation={null}
+                />
             </Route>
             <Route path="/observable-stream-subscription">
-              <ObservableStreamSubscription />
+              <GraphQLObservableClient
+                graphqlObserve={graphqlObservableStreamClient}
+                query={SIMPLE_SUBSCRIPTION}
+                variables={{}}
+                init={{ mode: 'cores'}}
+                operation={null}
+                />
             </Route>
             <Route path="/observable-ws-query">
-              <ObservableWsQuery />
+              <GraphQLObservableClient
+                graphqlObserve={graphqlObservableWsClient}
+                query={SIMPLE_QUERY}
+                variables={{}}
+                init={{ mode: 'cores'}}
+                operation={null}
+                />
             </Route>
             <Route path="/observable-ws-subscription">
-              <ObservableWsSubscription />
+              <GraphQLObservableClient
+                graphqlObserve={graphqlObservableWsClient}
+                query={SIMPLE_SUBSCRIPTION}
+                variables={{}}
+                init={{ mode: 'cores'}}
+                operation={null}
+                />
             </Route>
             <Route path="/observable-sse-query">
-              <ObservableSseQuery />
+              <GraphQLObservableClient
+                graphqlObserve={graphqlObservableEventSourceClient}
+                query={SIMPLE_QUERY}
+                variables={{}}
+                init={{ mode: 'cores'}}
+                operation={null}
+                />
             </Route>
             <Route path="/observable-sse-subscription">
-              <ObservableSseSubscription />
+              <GraphQLObservableClient
+                graphqlObserve={graphqlObservableEventSourceClient}
+                query={SIMPLE_SUBSCRIPTION}
+                variables={{}}
+                init={{ mode: 'cores'}}
+                operation={null}
+                />
             </Route>
             <Route path="/">
               <Home />
