@@ -8,26 +8,7 @@ import {
   graphqlObservableStreamClient,
   graphqlObservableWsClient
 } from '../graphql-observable'
-
-const SIMPLE_QUERY = `
-query {
-  latest {
-    timestamp
-    cpu {
-      percent
-    }
-  }
-}`
-
-const SIMPLE_SUBSCRIPTION = `
-subscription {
-  system {
-    timestamp
-    cpu {
-      percent
-    }
-  }
-}`
+import QUERIES from '../queries'
 
 class App extends Component {
   render() {
@@ -64,7 +45,7 @@ class App extends Component {
             <Route path="/observable-fetch-query">
               <GraphQLObservableClient
                 graphqlObserve={graphqlObservableFetchClient}
-                query={SIMPLE_QUERY}
+                query={QUERIES.query.simple}
                 variables={{}}
                 init={{ mode: 'cores'}}
                 operation={null}
@@ -73,7 +54,7 @@ class App extends Component {
             <Route path="/observable-stream-query">
               <GraphQLObservableClient
                 graphqlObserve={graphqlObservableStreamClient}
-                query={SIMPLE_QUERY}
+                query={QUERIES.query.simple}
                 variables={{}}
                 init={{ mode: 'cores'}}
                 operation={null}
@@ -82,7 +63,7 @@ class App extends Component {
             <Route path="/observable-stream-subscription">
               <GraphQLObservableClient
                 graphqlObserve={graphqlObservableStreamClient}
-                query={SIMPLE_SUBSCRIPTION}
+                query={QUERIES.subscription.simple}
                 variables={{}}
                 init={{ mode: 'cores'}}
                 operation={null}
@@ -91,7 +72,7 @@ class App extends Component {
             <Route path="/observable-ws-query">
               <GraphQLObservableClient
                 graphqlObserve={graphqlObservableWsClient}
-                query={SIMPLE_QUERY}
+                query={QUERIES.query.simple}
                 variables={{}}
                 init={{ mode: 'cores'}}
                 operation={null}
@@ -100,7 +81,7 @@ class App extends Component {
             <Route path="/observable-ws-subscription">
               <GraphQLObservableClient
                 graphqlObserve={graphqlObservableWsClient}
-                query={SIMPLE_SUBSCRIPTION}
+                query={QUERIES.subscription.simple}
                 variables={{}}
                 init={{ mode: 'cores'}}
                 operation={null}
@@ -109,7 +90,7 @@ class App extends Component {
             <Route path="/observable-sse-query">
               <GraphQLObservableClient
                 graphqlObserve={graphqlObservableEventSourceClient}
-                query={SIMPLE_QUERY}
+                query={QUERIES.query.simple}
                 variables={{}}
                 init={{ mode: 'cores'}}
                 operation={null}
@@ -118,7 +99,7 @@ class App extends Component {
             <Route path="/observable-sse-subscription">
               <GraphQLObservableClient
                 graphqlObserve={graphqlObservableEventSourceClient}
-                query={SIMPLE_SUBSCRIPTION}
+                query={QUERIES.subscription.simple}
                 variables={{}}
                 init={{ mode: 'cores'}}
                 operation={null}
