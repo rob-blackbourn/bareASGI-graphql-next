@@ -12,3 +12,5 @@ pip install bareASGI-cors
 ```
 
 The `PYTHONPATH` must include the `demos` folder.
+
+Then run the server and the client.
