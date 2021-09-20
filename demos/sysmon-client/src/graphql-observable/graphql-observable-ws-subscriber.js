@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs'
-import { graphqlWsSubscriber } from '../graphql-client'
+import { graphqlWsSubscriber } from '@barejs/graphql-client'
 
 export default function graphqlObservableWsSubscriber(
   url,

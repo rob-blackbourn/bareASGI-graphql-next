@@ -1,6 +1,5 @@
 import { Observable } from 'rxjs'
-// import { graphqlEventSourceClient } from '@barejs/graphql-client'
-import { graphqlEventSourceClient } from '../graphql-client'
+import { graphqlEventSourceClient } from '@barejs/graphql-client'
 
 export default function graphqlObservableEventSourceClient(
   url,

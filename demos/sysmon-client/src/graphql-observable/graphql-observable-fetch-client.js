@@ -1,6 +1,5 @@
 import { Observable } from 'rxjs'
-// import { graphqlFetchClient } from '@barejs/graphql-client'
-import { graphqlFetchClient } from '../graphql-client'
+import { graphqlFetchClient } from '@barejs/graphql-client'
 
 export default function graphqlObservableFetchClient(
   url,
