@@ -56,6 +56,7 @@ class SystemMonitor:
                 'percent': psutil.cpu_percent(None, False),
                 'cores': [
                     {
+                        'core': i,
                         'percent': cpu_pct[i],
                         'times': {
                             camelcase(k, False): getattr(cpu_times[i], k)

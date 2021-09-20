@@ -17,6 +17,7 @@ query {
       count
       percent
       cores {
+        core
         percent
         times {
           user
@@ -61,6 +62,7 @@ subscription {
       count
       percent
       cores {
+        core
         percent
         times {
           user

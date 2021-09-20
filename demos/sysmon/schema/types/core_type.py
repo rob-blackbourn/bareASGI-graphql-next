@@ -7,6 +7,7 @@ from graphql import (
     GraphQLField,
     GraphQLNonNull,
     GraphQLFloat,
+    GraphQLInt
 )
 
 from .cpu_times_type import CpuTimesType
@@ -15,6 +16,7 @@ from .cpu_times_type import CpuTimesType
 CoreType = GraphQLObjectType(
     name='Core',
     fields=lambda: {
+        'core': GraphQLField(GraphQLNonNull(GraphQLInt)),
         'percent': GraphQLField(GraphQLNonNull(GraphQLFloat)),
         'times': GraphQLField(GraphQLNonNull(CpuTimesType)),
     }
