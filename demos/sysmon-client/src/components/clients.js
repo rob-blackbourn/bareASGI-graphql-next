@@ -3,7 +3,7 @@ import {
   graphqlObservableEventSourceClient,
   graphqlObservableStreamClient,
   graphqlObservableWsClient
-} from '../graphql-observable'
+} from '@barejs/graphql-observable'
 
 const CLIENTS = {
   fetch: graphqlObservableFetchClient,
