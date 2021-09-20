@@ -19,7 +19,7 @@ from typing import (
 
 from baretypes import Info, Scope, WebSocket
 import graphql
-from graphql import ExecutionResult
+from graphql import ExecutionResult, GraphQLError
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 
 from .utils import has_subscription
@@ -237,7 +237,8 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
 
     def _add_subscription(self, id_: Id, result: AsyncIterator) -> None:
         self._subscriptions[id_] = asyncio.create_task(
-            self._process_subscription(id_, result))
+            self._process_subscription(id_, result)
+        )
 
     def _remove_subscription(self, future: asyncio.Future) -> None:
         id_ = next(k for k, v in self._subscriptions.items() if v == future)
@@ -250,6 +251,14 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
             await self.web_socket.send(self._to_message(GQL_COMPLETE, id_))
         except asyncio.CancelledError:
             pass
+        except Exception as error:  # pylint: disable=broad-except
+            if not isinstance(error, GraphQLError):
+                error = GraphQLError('Execution error', original_error=error)
+            await self._send_execution_result(
+                id_,
+                ExecutionResult(errors=[error])
+            )
+            await self.web_socket.send(self._to_message(GQL_COMPLETE, id_))
 
         return result
 
@@ -285,8 +294,10 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
             result["data"] = execution_result.data
 
         if execution_result.errors:
-            result["errors"] = [graphql.format_error(
-                error) for error in execution_result.errors]
+            result["errors"] = [
+                error.formatted
+                for error in execution_result.errors
+            ]
 
         await self.web_socket.send(self._to_message(GQL_DATA, id_, result))
 

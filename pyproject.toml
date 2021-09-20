@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bareasgi-graphql-next"
-version = "4.1.0"
+version = "4.1.1"
 description = "GraphQL support for the bareASGI framework"
 authors = ["Rob Blackbourn <rob.blackbourn@gmail.com>"]
 license = "Apache-2.0"
@@ -15,13 +15,13 @@ python = "^3.7"
 bareASGI = "^3"
 graphql-core = "^3.1"
 graphene = {version = "^3.0b7", optional = true, allow-prereleases = true}
+Hypercorn = "^0.11.2"
+uvicorn = "^0.15.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.0"
 pytest-asyncio = "^0.10"
 pytest-runner = "^5.1"
-uvicorn = "^0.11"
-hypercorn = "^0.7.2"
 pylint = "^2.10"
 mypy = "^0.910"
 mkdocs = "^1.0.4"

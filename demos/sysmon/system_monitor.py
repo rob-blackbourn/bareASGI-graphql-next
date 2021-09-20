@@ -3,16 +3,14 @@ System Monitor
 """
 
 import asyncio
-import logging
-
 from asyncio import Lock, Queue
 from datetime import datetime
+import logging
 from math import nan
-
-import psutil
+from typing import List, Mapping, Any
 
 from graphql.pyutils import snake_to_camel as camelcase
-from typing import List, Mapping, Any
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -58,16 +56,20 @@ class SystemMonitor:
                 'percent': psutil.cpu_percent(None, False),
                 'cores': [
                     {
+                        'core': i,
                         'percent': cpu_pct[i],
                         'times': {
-                            camelcase(k): getattr(cpu_times[i], k)
+                            camelcase(k, False): getattr(cpu_times[i], k)
                             for k in cpu_times[i]._fields
                         }
 
                     }
                     for i in range(self.cpu_count)
                 ],
-                'stats': {camelcase(k): getattr(cpu_stats, k) for k in cpu_stats._fields}
+                'stats': {
+                    camelcase(k, False): getattr(cpu_stats, k)
+                    for k in cpu_stats._fields
+                }
             }
         }
 
