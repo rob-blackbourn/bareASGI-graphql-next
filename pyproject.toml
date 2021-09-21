@@ -24,10 +24,11 @@ pytest-asyncio = "^0.10"
 pytest-runner = "^5.1"
 pylint = "^2.10"
 mypy = "^0.910"
-mkdocs = "^1.0.4"
-mkdocs-material = "^4.6.0"
-jetblack-markdown = "^0.7"
 autopep8 = "^1.5"
+mkdocs = "^1.2"
+mkdocs-material = "^7.2"
+jetblack-markdown = "^0.6"
+mike = "^1.1.1"
 
 [tool.poetry.extras]
 graphene = [ "graphene" ]

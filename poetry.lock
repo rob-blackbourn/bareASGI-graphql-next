@@ -269,7 +269,7 @@ plugins = ["setuptools"]
 
 [[package]]
 name = "jetblack-markdown"
-version = "0.7"
+version = "0.6"
 description = "A markdown extension for python documentation"
 category = "dev"
 optional = false
@@ -340,6 +340,24 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "mike"
+version = "1.1.1"
+description = "Manage multiple versions of your MkDocs-powered documentation"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+jinja2 = "*"
+mkdocs = ">=1.0"
+pyyaml = ">=5.1"
+verspec = "*"
+
+[package.extras]
+dev = ["coverage", "flake8 (>=3.0)", "shtab"]
+test = ["coverage", "flake8 (>=3.0)", "shtab"]
+
+[[package]]
 name = "mkdocs"
 version = "1.2.2"
 description = "Project documentation with Markdown."
@@ -364,7 +382,7 @@ i18n = ["babel (>=2.9.0)"]
 
 [[package]]
 name = "mkdocs-material"
-version = "4.6.3"
+version = "7.2.8"
 description = "A Material Design theme for MkDocs"
 category = "dev"
 optional = false
@@ -372,13 +390,22 @@ python-versions = "*"
 
 [package.dependencies]
 markdown = ">=3.2"
-mkdocs = ">=1.0"
+mkdocs = ">=1.2.2"
+mkdocs-material-extensions = ">=1.0"
 Pygments = ">=2.4"
-pymdown-extensions = ">=6.3"
+pymdown-extensions = ">=7.0"
+
+[[package]]
+name = "mkdocs-material-extensions"
+version = "1.0.3"
+description = "Extension pack for Python Markdown."
+category = "dev"
+optional = false
+python-versions = ">=3.6"
 
 [[package]]
 name = "more-itertools"
-version = "8.9.0"
+version = "8.10.0"
 description = "More routines for operating on iterables, beyond itertools"
 category = "dev"
 optional = false
@@ -644,6 +671,17 @@ typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
 standard = ["websockets (>=9.1)", "httptools (>=0.2.0,<0.3.0)", "watchgod (>=0.6)", "python-dotenv (>=0.13)", "PyYAML (>=5.1)", "uvloop (>=0.14.0,!=0.15.0,!=0.15.1)", "colorama (>=0.4)"]
 
 [[package]]
+name = "verspec"
+version = "0.1.0"
+description = "Flexible version handling"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.extras]
+test = ["coverage", "flake8 (>=3.7)", "mypy", "pretend", "pytest"]
+
+[[package]]
 name = "watchdog"
 version = "2.1.5"
 description = "Filesystem events monitoring"
@@ -699,7 +737,7 @@ graphene = ["graphene"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "fcff0d6478062a7fb63831899ee5b19d722bd3cf47be4614832221e216d7f304"
+content-hash = "5dfbef7d56601bcb0dbdfc776f010a30349c28de0f108cebf866866d95f1ad0f"
 
 [metadata.files]
 aniso8601 = [
@@ -793,8 +831,8 @@ isort = [
     {file = "isort-5.9.3.tar.gz", hash = "sha256:9c2ea1e62d871267b78307fe511c0838ba0da28698c5732d54e2790bf3ba9899"},
 ]
 jetblack-markdown = [
-    {file = "jetblack-markdown-0.7.tar.gz", hash = "sha256:40420d8472841e94f2e7a230a3ba9470b3f58838d71ae0a2f6cb9e9b598638d4"},
-    {file = "jetblack_markdown-0.7-py3-none-any.whl", hash = "sha256:e22dbe5c4fc02c4c22705042dec205c3c7c4eb8a5b9e4db52a783d91d194d4f7"},
+    {file = "jetblack-markdown-0.6.tar.gz", hash = "sha256:27d69f8d8d83d75299e250d0afd8c07f5e55d626c7b465c329a32e87f05e6374"},
+    {file = "jetblack_markdown-0.6-py3-none-any.whl", hash = "sha256:4215db8076584aea5949ae2323be8d7a17ce4987aa891445d16d91f0a5d3a2ae"},
 ]
 jinja2 = [
     {file = "Jinja2-3.0.1-py3-none-any.whl", hash = "sha256:1f06f2da51e7b56b8f238affdd6b4e2c61e39598a378cc49345bc1bd42a978a4"},
@@ -892,17 +930,25 @@ mergedeep = [
     {file = "mergedeep-1.3.4-py3-none-any.whl", hash = "sha256:70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307"},
     {file = "mergedeep-1.3.4.tar.gz", hash = "sha256:0096d52e9dad9939c3d975a774666af186eda617e6ca84df4c94dec30004f2a8"},
 ]
+mike = [
+    {file = "mike-1.1.1-py3-none-any.whl", hash = "sha256:30d221ac6fca3d5820b333103d4086437cf4d16b122c188b3740c3852f3e4e1d"},
+    {file = "mike-1.1.1.tar.gz", hash = "sha256:93e0a3a904311ebb432d3210242cca38286fb1ff1944e08bb1e7b46c149ebce1"},
+]
 mkdocs = [
     {file = "mkdocs-1.2.2-py3-none-any.whl", hash = "sha256:d019ff8e17ec746afeb54eb9eb4112b5e959597aebc971da46a5c9486137f0ff"},
     {file = "mkdocs-1.2.2.tar.gz", hash = "sha256:a334f5bd98ec960638511366eb8c5abc9c99b9083a0ed2401d8791b112d6b078"},
 ]
 mkdocs-material = [
-    {file = "mkdocs-material-4.6.3.tar.gz", hash = "sha256:1d486635b03f5a2ec87325842f7b10c7ae7daa0eef76b185572eece6a6ea212c"},
-    {file = "mkdocs_material-4.6.3-py2.py3-none-any.whl", hash = "sha256:7f3afa0a09c07d0b89a6a9755fdb00513aee8f0cec3538bb903325c80f66f444"},
+    {file = "mkdocs-material-7.2.8.tar.gz", hash = "sha256:b9a3d1cda28310acf74842a227fedc90d26e407742d3d7ffc0cdcf0560d22ed3"},
+    {file = "mkdocs_material-7.2.8-py2.py3-none-any.whl", hash = "sha256:ffa1ccde3f58b955d65a3420a18c7739178722150790bbd1b08393b0b81ada55"},
+]
+mkdocs-material-extensions = [
+    {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},
+    {file = "mkdocs_material_extensions-1.0.3-py3-none-any.whl", hash = "sha256:a82b70e533ce060b2a5d9eb2bc2e1be201cf61f901f93704b4acf6e3d5983a44"},
 ]
 more-itertools = [
-    {file = "more-itertools-8.9.0.tar.gz", hash = "sha256:8c746e0d09871661520da4f1241ba6b908dc903839733c8203b552cffaf173bd"},
-    {file = "more_itertools-8.9.0-py3-none-any.whl", hash = "sha256:70401259e46e216056367a0a6034ee3d3f95e0bf59d3aa6a4eb77837171ed996"},
+    {file = "more-itertools-8.10.0.tar.gz", hash = "sha256:1debcabeb1df793814859d64a81ad7cb10504c24349368ccf214c664c474f41f"},
+    {file = "more_itertools-8.10.0-py3-none-any.whl", hash = "sha256:56ddac45541718ba332db05f464bebfb0768110111affd27f66e0051f276fa43"},
 ]
 mypy = [
     {file = "mypy-0.910-cp35-cp35m-macosx_10_9_x86_64.whl", hash = "sha256:a155d80ea6cee511a3694b108c4494a39f42de11ee4e61e72bc424c490e46457"},
@@ -1072,6 +1118,10 @@ typing-extensions = [
 uvicorn = [
     {file = "uvicorn-0.15.0-py3-none-any.whl", hash = "sha256:17f898c64c71a2640514d4089da2689e5db1ce5d4086c2d53699bf99513421c1"},
     {file = "uvicorn-0.15.0.tar.gz", hash = "sha256:d9a3c0dd1ca86728d3e235182683b4cf94cd53a867c288eaeca80ee781b2caff"},
+]
+verspec = [
+    {file = "verspec-0.1.0-py3-none-any.whl", hash = "sha256:741877d5633cc9464c45a469ae2a31e801e6dbbaa85b9675d481cda100f11c31"},
+    {file = "verspec-0.1.0.tar.gz", hash = "sha256:c4504ca697b2056cdb4bfa7121461f5a0e81809255b41c03dda4ba823637c01e"},
 ]
 watchdog = [
     {file = "watchdog-2.1.5-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:5f57ce4f7e498278fb2a091f39359930144a0f2f90ea8cbf4523c4e25de34028"},
