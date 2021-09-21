@@ -4,6 +4,10 @@ Graphql support for [bareASGI](http://github.com/rob-blackbourn/bareASGI) (read 
 
 The controller provides a GraphQL GET and POST route, a WebSocket subscription server, and a Graphiql view.
 
+## Branch
+
+This is the v4 maintenance branch.
+
 ## Installation
 
 Install from the pie shop.
