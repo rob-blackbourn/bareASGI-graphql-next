@@ -1,0 +1,934 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="GraphQL support for bareASGI">
+      
+      
+      
+      
+      <link rel="icon" href="../../images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.2.8">
+    
+    
+      
+        <title>Clients - bareASGI-graphql-next</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.92558b1b.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../css/custom.css">
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#clients" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="bareASGI-graphql-next" class="md-header__button md-logo" aria-label="bareASGI-graphql-next" data-md-component="logo">
+      
+  <img src="../../images/peach.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bareASGI-graphql-next
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Clients
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/rob-blackbourn/bareASGI-graphql-next" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rob-blackbourn/bareASGI-graphql-next
+  </div>
+</a>
+      </div>
+    
+  </nav>
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="bareASGI-graphql-next" class="md-nav__button md-logo" aria-label="bareASGI-graphql-next" data-md-component="logo">
+      
+  <img src="../../images/peach.svg" alt="logo">
+
+    </a>
+    bareASGI-graphql-next
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/rob-blackbourn/bareASGI-graphql-next" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rob-blackbourn/bareASGI-graphql-next
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        GraphQL with bareASGI
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      <label class="md-nav__link" for="__nav_2">
+        User Guide
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Clients
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Clients
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#queries-mutations" class="md-nav__link">
+    Queries &amp; Mutations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subscriptions" class="md-nav__link">
+    Subscriptions
+  </a>
+  
+    <nav class="md-nav" aria-label="Subscriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#websockets" class="md-nav__link">
+    WebSockets
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-sent-events" class="md-nav__link">
+    Server Sent Events
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#queries-mutations-subscriptions" class="md-nav__link">
+    Queries, Mutations &amp; Subscriptions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observable" class="md-nav__link">
+    Observable
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prebuilt-clients" class="md-nav__link">
+    Prebuilt Clients
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      <label class="md-nav__link" for="__nav_3">
+        API
+        <span class="md-nav__icon md-icon"></span>
+      </label>
+      <nav class="md-nav" aria-label="API" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/bareasgi_graphql_next/" class="md-nav__link">
+        bareasgi_graphql_next
+      </a>
+    </li>
+  
+
+          
+            
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/bareasgi_graphene/" class="md-nav__link">
+        bareasgi_graphene
+      </a>
+    </li>
+  
+
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    Overview
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#queries-mutations" class="md-nav__link">
+    Queries &amp; Mutations
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subscriptions" class="md-nav__link">
+    Subscriptions
+  </a>
+  
+    <nav class="md-nav" aria-label="Subscriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#websockets" class="md-nav__link">
+    WebSockets
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-sent-events" class="md-nav__link">
+    Server Sent Events
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#queries-mutations-subscriptions" class="md-nav__link">
+    Queries, Mutations &amp; Subscriptions
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observable" class="md-nav__link">
+    Observable
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prebuilt-clients" class="md-nav__link">
+    Prebuilt Clients
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="clients">Clients<a class="headerlink" href="#clients" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>GraphQL supports three types of <em>actions</em>:</p>
+<ul>
+<li>Queries</li>
+<li>Mutations</li>
+<li>Subscriptions</li>
+</ul>
+<h2 id="queries-mutations">Queries &amp; Mutations<a class="headerlink" href="#queries-mutations" title="Permanent link">&para;</a></h2>
+<p>The controller exposes an endpoint <code>/graphql</code>. There are a number of libraries that can be used
+including <a href="https://github.com/facebook/relay">Facebook Relay</a>
+and <a href="https://www.apollographql.com/">Apollo GraphQL</a>. These are feature rich, but the underlying
+mechanism for queries and mutations is just a simple <code>fetch</code> request.</p>
+<p>Here is a code snippet demonstrating a query.</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;query { myQuery { someField otherField } }&#39;</span>
+<span class="kd">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
+
+<span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.exammple.com/graphql&#39;</span>
+
+<span class="c1">// Invoke fetch as a POST with the GraphQL content in the body.</span>
+<span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+    <span class="nx">body</span><span class="o">:</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+    <span class="nx">query</span><span class="p">,</span>
+    <span class="nx">variables</span><span class="p">,</span>
+    <span class="nx">operationName</span>
+    <span class="p">})</span>
+<span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span> <span class="p">=&gt;</span> <span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">())</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
+</code></pre></div>
+
+<p>We might wrap this up in the following function:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">export</span> <span class="kd">class</span> <span class="nx">FetchError</span> <span class="k">extends</span> <span class="ne">Error</span> <span class="p">{</span>
+    <span class="kr">constructor</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="p">...</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">super</span><span class="p">(...</span><span class="nx">params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">)</span> <span class="p">{</span>
+        <span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">FetchError</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s1">&#39;FetchError&#39;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">response</span> <span class="o">=</span> <span class="nx">response</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">graphQLClient</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">,</span> <span class="nx">onError</span><span class="p">,</span> <span class="nx">onSuccess</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// Invoke fetch as a POST with the GraphQL content in the body.</span>
+    <span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+    <span class="nx">body</span><span class="o">:</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+        <span class="nx">query</span><span class="p">,</span>
+        <span class="nx">variables</span><span class="p">,</span>
+        <span class="nx">operationName</span>
+    <span class="p">})</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span> <span class="p">=&gt;</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">ok</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
+            <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">json</span> <span class="p">=&gt;</span> <span class="p">{</span>
+            <span class="nx">onSuccess</span><span class="p">(</span><span class="nx">json</span><span class="p">)</span>
+            <span class="p">})</span>
+            <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">onError</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">onError</span><span class="p">(</span><span class="ow">new</span> <span class="nx">FetchError</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="s1">&#39;Failed to execute GraphQL&#39;</span><span class="p">))</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">onError</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>This can then be called like this:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
+<span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;query { someQuery { someField someOtherField } }&#39;</span>
+<span class="kd">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
+
+<span class="nx">graphQLClient</span><span class="p">(</span>
+    <span class="nx">url</span><span class="p">,</span>
+    <span class="nx">query</span><span class="p">,</span>
+    <span class="nx">variables</span><span class="p">,</span>
+    <span class="nx">operationName</span><span class="p">,</span>
+    <span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">),</span>
+    <span class="nx">data</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
+</code></pre></div>
+
+<h2 id="subscriptions">Subscriptions<a class="headerlink" href="#subscriptions" title="Permanent link">&para;</a></h2>
+<p>Two transport mechanisms are provided for GraphQL subscriptions:</p>
+<ul>
+<li>WebSockets</li>
+<li>Server Sent Events</li>
+</ul>
+<h3 id="websockets">WebSockets<a class="headerlink" href="#websockets" title="Permanent link">&para;</a></h3>
+<p>Subscriptions can be made over WebSockets implementing the 
+<a href="https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md">Apollo GraphQL transport protocol</a>
+using the <code>/subscriptions</code> endpoint. This seems to be the most widely used
+mechanism and is compatible with the majority of javascript front libraries.</p>
+<p>The implementation of the JavaScript WebSocket client is too complex to describe here, but
+there is an implementation in <a href="https://github.com/rob-blackbourn/jetblack-graphql-client">@jetblack/graphql-client</a>,
+the implementation of which is discussed <a href="https://medium.com/@rob.blackbourn/writing-a-graphql-websocket-subscriber-in-javascript-4451abb9cd60">here</a>.</p>
+<p>This is the protocol used by the inbuilt <a href="https://github.com/graphql/graphiql">GraphiQL IDE</a>.</p>
+<h3 id="server-sent-events">Server Sent Events<a class="headerlink" href="#server-sent-events" title="Permanent link">&para;</a></h3>
+<p>As well as the more popular WebSocket Subscription, a mechanism using
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events">server sent events</a>
+is also supported. While this is uncommon, it is a really good use of SSE, as all the communication
+if from the server to the client.</p>
+<p>The GraphQL controller exposes an endpoint: <code>/sse-subscription?query=...&amp;variables=...&amp;operationName=...</code></p>
+<p>This can be called in the following manner:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="s1">&#39;subscription { mySubscription { name timestamp } }&#39;</span><span class="p">)</span>
+<span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="sb">`http://www.example.com/sse-subscription?query=</span><span class="si">${</span><span class="nx">query</span><span class="si">}</span><span class="sb">`</span>
+<span class="kd">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span>
+<span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">event</span> <span class="p">=&gt;</span> <span class="p">{</span>
+    <span class="nx">data</span> <span class="o">=</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>We could wrap this up in the following manner:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">export</span> <span class="kd">function</span> <span class="nx">graphQLSubscriber</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">,</span> <span class="nx">onError</span><span class="p">,</span> <span class="nx">onSuccess</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">subscriptionUrl</span> <span class="o">=</span> <span class="nx">url</span> <span class="o">+</span> <span class="s1">&#39;?query=&#39;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">query</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">variables</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">subscriptionUrl</span> <span class="o">+=</span> <span class="s1">&#39;&amp;variables=&#39;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">variables</span><span class="p">))</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">operationName</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">subscriptionUrl</span> <span class="o">+=</span> <span class="s1">&#39;&amp;operationName=&#39;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">operationName</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="kd">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">subscriptionUrl</span><span class="p">)</span>
+    <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">event</span> <span class="p">=&gt;</span> <span class="nx">onSuccess</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">))</span>
+    <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onerror</span> <span class="o">=</span> <span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">onError</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span>
+    <span class="c1">// Return the close function to unsubscribe.</span>
+    <span class="k">return</span> <span class="nx">eventSource</span><span class="p">.</span><span class="nx">close</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>This can then be called like this:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/sse-subscription&#39;</span>
+<span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;subscription { someSubscription { someField someOtherField } }&#39;</span>
+<span class="kd">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
+
+<span class="nx">graphQLSubscriber</span><span class="p">(</span>
+    <span class="nx">url</span><span class="p">,</span>
+    <span class="nx">query</span><span class="p">,</span>
+    <span class="nx">variables</span><span class="p">,</span>
+    <span class="nx">operationName</span><span class="p">,</span>
+    <span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">),</span>
+    <span class="nx">data</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span>
+</code></pre></div>
+
+<h2 id="queries-mutations-subscriptions">Queries, Mutations &amp; Subscriptions<a class="headerlink" href="#queries-mutations-subscriptions" title="Permanent link">&para;</a></h2>
+<p>In this implementation queries, mutations and subscriptions can <strong>all</strong> be made using the <code>fetch</code> api.
+With a successful query or mutation the response status code is 200 (OK), and the body contains the
+result. For a subscription the status code 201 (CREATED) is returned, and the <code>location</code> header contains
+the url to be used to request server sent events through the
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/EventSource">EventSource</a> API.</p>
+<p>This means we can provide a single client function to handle all three requests. Here is some sample code that does this.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">export</span> <span class="kd">class</span> <span class="nx">FetchError</span> <span class="k">extends</span> <span class="ne">Error</span> <span class="p">{</span>
+    <span class="kr">constructor</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="p">...</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">super</span><span class="p">(...</span><span class="nx">params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">)</span> <span class="p">{</span>
+        <span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">FetchError</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s1">&#39;FetchError&#39;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">response</span> <span class="o">=</span> <span class="nx">response</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">graphQLClient</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">,</span> <span class="nx">onNext</span><span class="p">,</span> <span class="nx">onError</span><span class="p">,</span> <span class="nx">onComplete</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">abortController</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">AbortController</span><span class="p">()</span>
+
+    <span class="c1">// Invoke fetch as a POST with the GraphQL content in the body.</span>
+    <span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+    <span class="nx">signal</span><span class="o">:</span> <span class="nx">abortController</span><span class="p">.</span><span class="nx">signal</span><span class="p">,</span>
+    <span class="nx">body</span><span class="o">:</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+        <span class="nx">query</span><span class="p">,</span>
+        <span class="nx">variables</span><span class="p">,</span>
+        <span class="nx">operationName</span>
+    <span class="p">})</span>
+    <span class="p">})</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span> <span class="p">=&gt;</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mf">200</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// A 200 response is from a query or mutation.</span>
+
+        <span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
+            <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">json</span> <span class="p">=&gt;</span> <span class="p">{</span>
+            <span class="nx">onNext</span><span class="p">(</span><span class="nx">json</span><span class="p">)</span>
+            <span class="nx">onComplete</span><span class="p">()</span>
+            <span class="p">})</span>
+            <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">onError</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
+
+        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mf">201</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// A 201 is the response for a subscription.</span>
+
+        <span class="c1">// The url for the event source is passed in the &#39;location&#39; header.</span>
+        <span class="kd">const</span> <span class="nx">location</span> <span class="o">=</span> <span class="nx">response</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">)</span>
+
+        <span class="kd">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">location</span><span class="p">)</span>
+
+        <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">event</span> <span class="p">=&gt;</span> <span class="p">{</span>
+            <span class="kd">const</span> <span class="nx">data</span> <span class="o">=</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">)</span>
+            <span class="nx">onNext</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onerror</span> <span class="o">=</span> <span class="nx">error</span> <span class="p">=&gt;</span> <span class="p">{</span>
+            <span class="nx">onError</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span>
+        <span class="p">}</span>
+
+        <span class="nx">abortController</span><span class="p">.</span><span class="nx">signal</span><span class="p">.</span><span class="nx">onabort</span> <span class="o">=</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">eventSource</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">!==</span> <span class="mf">2</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">eventSource</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">onError</span><span class="p">(</span><span class="ow">new</span> <span class="nx">FetchError</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="s1">&#39;Failed to execute GraphQL&#39;</span><span class="p">))</span>
+        <span class="p">}</span>
+
+    <span class="p">})</span>
+    <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">onError</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
+
+    <span class="c1">// Return an unsubscribe function.</span>
+    <span class="k">return</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+    <span class="nx">abortController</span><span class="p">.</span><span class="nx">abort</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>This can then be called like this:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
+
+<span class="c1">// This could be a query, mutation or subscription.</span>
+<span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;subscription { someSubscription { someField someOtherField } }&#39;</span>
+<span class="kd">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
+
+<span class="kd">const</span> <span class="nx">unsubscribe</span> <span class="o">=</span> <span class="nx">graphQLClient</span><span class="p">(</span>
+    <span class="nx">url</span><span class="p">,</span>
+    <span class="nx">query</span><span class="p">,</span>
+    <span class="nx">variables</span><span class="p">,</span>
+    <span class="nx">operationName</span><span class="p">,</span>
+    <span class="nx">data</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">),</span>
+    <span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">),</span>
+    <span class="p">()</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;complete&#39;</span><span class="p">))</span>
+
+<span class="c1">// Later ...</span>
+<span class="nx">unsubscribe</span><span class="p">()</span>
+</code></pre></div>
+
+<h2 id="observable">Observable<a class="headerlink" href="#observable" title="Permanent link">&para;</a></h2>
+<p>Clearly the above code roles it's own <em>observable</em> pattern. We can wrap this up with rxjs
+to provide a cleaner client.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">import</span> <span class="p">{</span> <span class="nx">Observable</span> <span class="p">}</span> <span class="kr">from</span> <span class="s1">&#39;rxjs&#39;</span>
+
+<span class="k">export</span> <span class="kd">class</span> <span class="nx">FetchError</span> <span class="k">extends</span> <span class="ne">Error</span> <span class="p">{</span>
+    <span class="kr">constructor</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="p">...</span><span class="nx">params</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">super</span><span class="p">(...</span><span class="nx">params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">)</span> <span class="p">{</span>
+        <span class="ne">Error</span><span class="p">.</span><span class="nx">captureStackTrace</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">FetchError</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">this</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="s1">&#39;FetchError&#39;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">response</span> <span class="o">=</span> <span class="nx">response</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">observableGraphQL</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="nx">query</span><span class="p">,</span> <span class="nx">variables</span><span class="p">,</span> <span class="nx">operationName</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">Observable</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">observer</span> <span class="p">=&gt;</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">abortController</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">AbortController</span><span class="p">()</span>
+
+    <span class="nx">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">method</span><span class="o">:</span> <span class="s1">&#39;POST&#39;</span><span class="p">,</span>
+        <span class="nx">signal</span><span class="o">:</span> <span class="nx">abortController</span><span class="p">.</span><span class="nx">signal</span><span class="p">,</span>
+        <span class="nx">body</span><span class="o">:</span> <span class="nb">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">({</span>
+        <span class="nx">query</span><span class="p">,</span>
+        <span class="nx">variables</span><span class="p">,</span>
+        <span class="nx">operationName</span>
+        <span class="p">})</span>
+    <span class="p">})</span>
+        <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">response</span> <span class="p">=&gt;</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mf">200</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// A 200 response is from a query or mutation.</span>
+
+            <span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">()</span>
+            <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">json</span> <span class="p">=&gt;</span> <span class="p">{</span>
+                <span class="nx">observer</span><span class="p">.</span><span class="nx">next</span><span class="p">(</span><span class="nx">json</span><span class="p">)</span>
+                <span class="nx">observer</span><span class="p">.</span><span class="nx">complete</span><span class="p">()</span>
+            <span class="p">})</span>
+            <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">observer</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
+
+        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="mf">201</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// A 201 is the response for a subscription.</span>
+
+            <span class="c1">// The url for the event source is passed in the &#39;location&#39; header.</span>
+            <span class="kd">const</span> <span class="nx">location</span> <span class="o">=</span> <span class="nx">response</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">)</span>
+
+            <span class="kd">const</span> <span class="nx">eventSource</span> <span class="o">=</span> <span class="ow">new</span> <span class="nx">EventSource</span><span class="p">(</span><span class="nx">location</span><span class="p">)</span>
+
+            <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="nx">event</span> <span class="p">=&gt;</span> <span class="p">{</span>
+            <span class="nx">observer</span><span class="p">.</span><span class="nx">next</span><span class="p">(</span><span class="nb">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="p">))</span>
+            <span class="p">}</span>
+
+            <span class="nx">eventSource</span><span class="p">.</span><span class="nx">onerror</span> <span class="o">=</span> <span class="nx">error</span> <span class="p">=&gt;</span> <span class="p">{</span>
+            <span class="nx">observer</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">)</span>
+            <span class="p">}</span>
+
+            <span class="nx">abortController</span><span class="p">.</span><span class="nx">signal</span><span class="p">.</span><span class="nx">onabort</span> <span class="o">=</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">eventSource</span><span class="p">.</span><span class="nx">readyState</span> <span class="o">!==</span> <span class="mf">2</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">eventSource</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
+            <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="nx">observer</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="ow">new</span> <span class="nx">FetchError</span><span class="p">(</span><span class="nx">response</span><span class="p">,</span> <span class="s1">&#39;Failed to execute GraphQL&#39;</span><span class="p">))</span>
+        <span class="p">}</span>
+        <span class="p">})</span>
+        <span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">observer</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="nx">error</span><span class="p">))</span>
+
+    <span class="c1">// Return the unsubscribe function.</span>
+    <span class="k">return</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+        <span class="nx">abortController</span><span class="p">.</span><span class="nx">abort</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="p">})</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>This can then be called like this:</p>
+<div class="codehilite"><pre><span></span><code><span class="kd">const</span> <span class="nx">url</span> <span class="o">=</span> <span class="s1">&#39;http://www.example.com/graphql&#39;</span>
+
+<span class="c1">// This could be a query, mutation or subscription.</span>
+<span class="kd">const</span> <span class="nx">query</span> <span class="o">=</span> <span class="s1">&#39;subscription { someSubscription { someField someOtherField } }&#39;</span>
+<span class="kd">const</span> <span class="nx">variables</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="kd">const</span> <span class="nx">operationName</span> <span class="o">=</span> <span class="kc">null</span>
+
+<span class="kd">const</span> <span class="nx">subscription</span> <span class="o">=</span> <span class="nx">observableGraphQL</span><span class="p">(</span>
+    <span class="nx">url</span><span class="p">,</span>
+    <span class="nx">query</span><span class="p">,</span>
+    <span class="nx">variables</span><span class="p">,</span>
+    <span class="nx">operationName</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">subscribe</span><span class="p">({</span>
+    <span class="nx">next</span><span class="o">:</span> <span class="nx">responses</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">response</span><span class="p">),</span>
+    <span class="nx">error</span><span class="o">:</span> <span class="nx">error</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">error</span><span class="p">),</span>
+    <span class="nx">complete</span><span class="o">:</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;complete&#39;</span><span class="p">)</span>
+    <span class="p">})</span>
+
+<span class="c1">// Later ...</span>
+<span class="nx">subscription</span><span class="p">.</span><span class="nx">unsubscribe</span><span class="p">()</span>
+</code></pre></div>
+
+<h2 id="prebuilt-clients">Prebuilt Clients<a class="headerlink" href="#prebuilt-clients" title="Permanent link">&para;</a></h2>
+<p>There are some prebuilt javascript clients:</p>
+<ul>
+<li><a href="https://github.com/rob-blackbourn/barejs-graphql-client">barejs-graphql-client</a>
+    for callback style clients.</li>
+<li><a href="https://github.com/rob-blackbourn/barejs-graphql-observable">barejs-graphql-observable</a>
+    for observable style clients using <a href="https://rxjs-dev.firebaseapp.com/api">rxjs</a>.</li>
+</ul>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../getting-started/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Getting Started" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Getting Started
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../../api/bareasgi_graphql_next/" class="md-footer__link md-footer__link--next" aria-label="Next: bareasgi_graphql_next" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              bareasgi_graphql_next
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        Made with
+        <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+          Material for MkDocs
+        </a>
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.94ec81fe.min.js", "version": {"provider": "mike", "default": "stable"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.48dfec6c.min.js"></script>
+      
+    
+  </body>
+</html>
