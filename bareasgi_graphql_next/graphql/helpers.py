@@ -1,17 +1,17 @@
-"""
-GraphQL controller
-"""
+"""Helpers for installing the graphql middleware"""
 
 import json
 import logging
 from typing import Any, Callable, Optional
 
-from graphql import GraphQLSchema
 from bareasgi import Application, LifespanRequest, HttpMiddlewareCallback
+from graphql import GraphQLSchema
 
 from .controller import GraphQLController
 
 logger = logging.getLogger(__name__)
+
+GRAPHQL_INFO_KEY = '__bareasgi_graphql_next.graphql__'
 
 
 def add_graphql_next(
@@ -45,7 +45,7 @@ def add_graphql_next(
         dumps (Callable[[Any], str], optional): The function to convert an
             object to a JSON string. Defaults to json.dumps.
     """
-    # pylint: disable=unused-argument
+
     async def start_graphql(request: LifespanRequest) -> None:
         """Start the GraphQL controller"""
 
@@ -64,15 +64,14 @@ def add_graphql_next(
             path_prefix,
             rest_middleware, view_middleware
         )
-        request.info['__graphql_controller__'] = controller
+        request.info[GRAPHQL_INFO_KEY] = controller
 
-    # pylint: disable=unused-argument
     async def stop_graphql(request: LifespanRequest) -> None:
         """Stop the GraphQL controller"""
 
         logger.debug('Stopping the GraphQL controller')
 
-        graphql_controller: GraphQLController = request.info['__graphql_controller__']
+        graphql_controller: GraphQLController = request.info[GRAPHQL_INFO_KEY]
         await graphql_controller.shutdown()
 
     app.startup_handlers.append(start_graphql)

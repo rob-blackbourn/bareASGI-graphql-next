@@ -115,14 +115,17 @@ class GraphQLControllerBase(metaclass=ABCMeta):
         """Add the routes
 
         Args:
-            app (Application): The ASGI application
+            app (Application): The ASGI application.
             path_prefix (str, optional): The path prefix. Defaults to ''.
             rest_middleware (Optional[HttpMiddlewareCallback], optional): The
                 rest middleware. Defaults to None.
             view_middleware (Optional[HttpMiddlewareCallback], optional): The
                 view middleware. Defaults to None.
+
+        Returns:
+            Application: The application.
         """
-        # Add the REST route
+        # Add the REST routes.
         app.http_router.add(
             {'GET'},
             path_prefix + '/graphql',
@@ -164,7 +167,6 @@ class GraphQLControllerBase(metaclass=ABCMeta):
         self.cancellation_event.set()
         await self.subscription_count.wait()
 
-    # pylint: disable=unused-argument
     async def view_graphiql(self, request: HttpRequest) -> HttpResponse:
         """Render the Graphiql view
 
@@ -172,7 +174,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             request (HttpRequest): The request.
 
         Returns:
-            HttpResponse: The response
+            HttpResponse: The response.
         """
 
         host = get_host(request.scope['headers'])
@@ -411,7 +413,6 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str]
     ) -> HttpResponse:
-
         # If unspecified default to server sent events as they have better support.
         accept = cast(
             bytes,

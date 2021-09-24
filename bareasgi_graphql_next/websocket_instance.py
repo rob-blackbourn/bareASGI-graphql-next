@@ -148,8 +148,7 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
         else:
             raise ProtocolError(f"Received unknown message type '{type_}'.")
 
-    # pylint: disable=unused-argument
-    async def _on_connection_init(self, id_: Optional[Id], connection_params: Optional[Any]):
+    async def _on_connection_init(self, id_: Optional[Id], _connection_params: Optional[Any]):
         try:
             await self.web_socket.send(self._to_message('connection_ack', id_))
         except Exception as error:

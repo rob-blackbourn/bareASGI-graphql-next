@@ -52,7 +52,7 @@ class GraphQLWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
     ) -> ExecutionResult:
         return await graphql.graphql(
             schema=self.schema,
-            source=graphql.Source(query),  # source=query,
+            source=graphql.Source(query),
             variable_values=variables,
             operation_name=operation_name,
             context_value=self.request
