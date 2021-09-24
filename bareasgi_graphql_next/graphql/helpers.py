@@ -7,12 +7,7 @@ import logging
 from typing import Any, Callable, Optional
 
 from graphql import GraphQLSchema
-from bareasgi import Application
-from baretypes import (
-    Scope,
-    Info,
-    HttpMiddlewareCallback
-)
+from bareasgi import Application, LifespanRequest, HttpMiddlewareCallback
 
 from .controller import GraphQLController
 
@@ -51,7 +46,7 @@ def add_graphql_next(
             object to a JSON string. Defaults to json.dumps.
     """
     # pylint: disable=unused-argument
-    async def start_graphql(scope: Scope, info: Info, request) -> None:
+    async def start_graphql(request: LifespanRequest) -> None:
         """Start the GraphQL controller"""
 
         logger.debug('Starting the GraphQL controller')
@@ -69,17 +64,15 @@ def add_graphql_next(
             path_prefix,
             rest_middleware, view_middleware
         )
-        assert info is not None, 'Ensure the info dict is set'
-        info['__graphql_controller__'] = controller
+        request.info['__graphql_controller__'] = controller
 
     # pylint: disable=unused-argument
-    async def stop_graphql(scope: Scope, info: Info, request) -> None:
+    async def stop_graphql(request: LifespanRequest) -> None:
         """Stop the GraphQL controller"""
 
         logger.debug('Stopping the GraphQL controller')
 
-        assert info is not None, 'Ensure the info dict is set'
-        graphql_controller: GraphQLController = info['__graphql_controller__']
+        graphql_controller: GraphQLController = request.info['__graphql_controller__']
         await graphql_controller.shutdown()
 
     app.startup_handlers.append(start_graphql)

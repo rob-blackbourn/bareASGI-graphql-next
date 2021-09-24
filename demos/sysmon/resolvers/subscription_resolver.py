@@ -4,7 +4,8 @@ Subscription resolver
 
 import logging
 
-from graphql import GraphQLResolveInfo, GraphQLError
+from bareasgi import HttpRequest
+from graphql import GraphQLResolveInfo
 
 from ..system_monitor import SystemMonitor
 
@@ -14,7 +15,8 @@ logger = logging.getLogger(__name__)
 async def subscribe_to_systems(_root, info: GraphQLResolveInfo, *_args, **_kwargs):
     """Subscribe to systems"""
     logger.debug('Subscribing to system data')
-    system_monitor: SystemMonitor = info.context['info']['system_monitor']
+    request: HttpRequest = info.context
+    system_monitor: SystemMonitor = request.info['system_monitor']
 
     # raise RuntimeError('Oh dear')
 
@@ -29,6 +31,6 @@ async def subscribe_to_systems(_root, info: GraphQLResolveInfo, *_args, **_kwarg
         await system_monitor.unlisten(queue)
 
 
-def resolve_subscriptions(root, info: GraphQLResolveInfo, *args, **kwargs):
+def resolve_subscriptions(root, _info: GraphQLResolveInfo, *args, **kwargs):
     """Resolve subscriptions"""
     return root

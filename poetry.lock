@@ -70,34 +70,22 @@ toml = "*"
 
 [[package]]
 name = "bareasgi"
-version = "3.7.1"
+version = "4.0.0a1"
 description = "A lightweight ASGI framework"
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
-baretypes = ">=3.6,<4.0"
-bareutils = ">=3.6,<4.0"
-
-[[package]]
-name = "baretypes"
-version = "3.6.4"
-description = "Types for bareASGI and bareClient"
-category = "main"
-optional = false
-python-versions = ">=3.7,<4.0"
+bareutils = ">=4.0.0-alpha.0,<5.0.0"
 
 [[package]]
 name = "bareutils"
-version = "3.7.0"
+version = "4.0.0a0"
 description = "Utilities for bareASGI and bareClient"
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
-
-[package.dependencies]
-baretypes = ">=3,<4"
 
 [[package]]
 name = "click"
@@ -382,7 +370,7 @@ i18n = ["babel (>=2.9.0)"]
 
 [[package]]
 name = "mkdocs-material"
-version = "7.2.8"
+version = "7.3.0"
 description = "A Material Design theme for MkDocs"
 category = "dev"
 optional = false
@@ -646,6 +634,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "types-setuptools"
+version = "57.4.0"
+description = "Typing stubs for setuptools"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "3.10.0.2"
 description = "Backported and Experimental Type Hints for Python 3.5+"
@@ -737,7 +733,7 @@ graphene = ["graphene"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "3f0bce8c5bec9f5afee6d4459e784a27222b3594e76da52123d557d474523674"
+content-hash = "e2a6d8126c36e8edd8ddcb871e61cb6a05a6d92a65be95da2f426a98705d1ba5"
 
 [metadata.files]
 aniso8601 = [
@@ -765,16 +761,12 @@ autopep8 = [
     {file = "autopep8-1.5.7.tar.gz", hash = "sha256:276ced7e9e3cb22e5d7c14748384a5cf5d9002257c0ed50c0e075b68011bb6d0"},
 ]
 bareasgi = [
-    {file = "bareasgi-3.7.1-py3-none-any.whl", hash = "sha256:9849f6b621d5932755d1631eedd22d06d52bbb18f1ad3f434fb66bf6479e1ffc"},
-    {file = "bareasgi-3.7.1.tar.gz", hash = "sha256:ecea6517edb936dfeaf06871766f259efd82dd52300fca6aeb4ba5d32b8f1ca5"},
-]
-baretypes = [
-    {file = "baretypes-3.6.4-py3-none-any.whl", hash = "sha256:563ebee21a2942f9fff6a7208a194fb3b6a68de86dff5dc31b144003badccc8d"},
-    {file = "baretypes-3.6.4.tar.gz", hash = "sha256:66339cbc1ce1fcae37848a56132a3929da93ba14530fe5fa3c3a1ca8da8ce04d"},
+    {file = "bareasgi-4.0.0a1-py3-none-any.whl", hash = "sha256:8b66bafbfa65fc3c7346148e4d8da778578fefac6c408b5c774d2cdfa83d2884"},
+    {file = "bareasgi-4.0.0a1.tar.gz", hash = "sha256:f43e9203eb23cd77c34aed8f999bfacf59f2f5c91aa59d0055f9689534cfdd01"},
 ]
 bareutils = [
-    {file = "bareutils-3.7.0-py3-none-any.whl", hash = "sha256:d0859d047035a02aa039193cf6ba86b9f8cc241d6fa1629fc483a422729d08d8"},
-    {file = "bareutils-3.7.0.tar.gz", hash = "sha256:c1ed0f2239eff3e0eb6053ca96a71be157c54266acb35e06173344e19e70fc9c"},
+    {file = "bareutils-4.0.0a0-py3-none-any.whl", hash = "sha256:1911042d030802965802b07f12f1142e60cf409b08310bb4819f276c77e463a4"},
+    {file = "bareutils-4.0.0a0.tar.gz", hash = "sha256:3fdc31f5be980a567c24c951b65122b7e695899f5724e0a99be7b182a0860beb"},
 ]
 click = [
     {file = "click-8.0.1-py3-none-any.whl", hash = "sha256:fba402a4a47334742d782209a7c79bc448911afe1149d07bdabdf480b3e2f4b6"},
@@ -939,8 +931,8 @@ mkdocs = [
     {file = "mkdocs-1.2.2.tar.gz", hash = "sha256:a334f5bd98ec960638511366eb8c5abc9c99b9083a0ed2401d8791b112d6b078"},
 ]
 mkdocs-material = [
-    {file = "mkdocs-material-7.2.8.tar.gz", hash = "sha256:b9a3d1cda28310acf74842a227fedc90d26e407742d3d7ffc0cdcf0560d22ed3"},
-    {file = "mkdocs_material-7.2.8-py2.py3-none-any.whl", hash = "sha256:ffa1ccde3f58b955d65a3420a18c7739178722150790bbd1b08393b0b81ada55"},
+    {file = "mkdocs-material-7.3.0.tar.gz", hash = "sha256:07db0580fa96c3473aee99ec3fb4606a1a5a1e4f4467e64c0cd1ba8da5b6476e"},
+    {file = "mkdocs_material-7.3.0-py2.py3-none-any.whl", hash = "sha256:b183c27dc0f44e631bbc32c51057f61a3e2ba8b3c1080e59f944167eeba9ff1d"},
 ]
 mkdocs-material-extensions = [
     {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},
@@ -1109,6 +1101,10 @@ typed-ast = [
     {file = "typed_ast-1.4.3-cp39-cp39-win32.whl", hash = "sha256:209596a4ec71d990d71d5e0d312ac935d86930e6eecff6ccc7007fe54d703808"},
     {file = "typed_ast-1.4.3-cp39-cp39-win_amd64.whl", hash = "sha256:9c6d1a54552b5330bc657b7ef0eae25d00ba7ffe85d9ea8ae6540d2197a3788c"},
     {file = "typed_ast-1.4.3.tar.gz", hash = "sha256:fb1bbeac803adea29cedd70781399c99138358c26d05fcbd23c13016b7f5ec65"},
+]
+types-setuptools = [
+    {file = "types-setuptools-57.4.0.tar.gz", hash = "sha256:5034f81b237429c1dc0ad84d3e9015e74730400c4db2b4db40daba216d39289b"},
+    {file = "types_setuptools-57.4.0-py3-none-any.whl", hash = "sha256:986630532705e8c77740b6d3cd86aaafd1e0ba6b04119c73c39dc4a67ceae579"},
 ]
 typing-extensions = [
     {file = "typing_extensions-3.10.0.2-py2-none-any.whl", hash = "sha256:d8226d10bc02a29bcc81df19a26e56a9647f8b0a6d4a83924139f4a8b01f17b7"},

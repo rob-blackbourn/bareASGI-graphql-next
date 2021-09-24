@@ -1,6 +1,6 @@
 """Graphene support"""
 
-from baretypes import Scope, Info, RouteMatches, WebSocket
+from bareasgi import WebSocketRequest
 import graphene
 
 from .websocket_instance import GrapheneWebSocketHandlerInstance
@@ -17,17 +17,6 @@ class GrapheneWebSocketHandler:
         """
         self.schema = schema
 
-    async def __call__(
-            self,
-            scope: Scope,
-            info: Info,
-            matches: RouteMatches,
-            web_socket: WebSocket
-    ) -> None:
-        instance = GrapheneWebSocketHandlerInstance(
-            self.schema,
-            web_socket,
-            scope,
-            info
-        )
-        await instance.start(scope['subprotocols'])
+    async def __call__(self, request: WebSocketRequest) -> None:
+        instance = GrapheneWebSocketHandlerInstance(self.schema, request)
+        await instance.start(request.scope['subprotocols'])

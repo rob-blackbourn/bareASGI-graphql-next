@@ -8,13 +8,13 @@ from typing import AsyncIterator, List, Optional, Set, TYPE_CHECKING
 
 import graphql
 
-from baretypes import (
+from bareasgi import (
     Scope,
     Header,
     HttpRequestCallback,
     HttpMiddlewareCallback
 )
-from bareasgi.middleware import mw
+from bareasgi.middleware import make_middleware_chain
 from graphql import OperationType
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 
@@ -51,7 +51,7 @@ async def cancellable_aiter(
     }
 
     if timeout is None:
-        sleep_task = None
+        sleep_task: "Optional[Future[Any]]" = None
     else:
         sleep_task = asyncio.create_task(asyncio.sleep(timeout))
         pending.add(sleep_task)
@@ -117,7 +117,7 @@ def wrap_middleware(
     if middleware is None:
         return handler
     else:
-        return mw(middleware, handler=handler)
+        return make_middleware_chain(middleware, handler=handler)
 
 
 class ZeroEvent:

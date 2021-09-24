@@ -27,18 +27,13 @@ from graphql.error.graphql_error import GraphQLError
 from graphql.execution import MiddlewareManager
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 from bareasgi import Application
-from baretypes import (
-    Header,
+from bareasgi import (
+    HttpRequest,
     HttpResponse,
-    Scope,
-    Info,
-    RouteMatches,
-    Content,
-    WebSocket,
+    WebSocketRequest,
     HttpMiddlewareCallback
 )
-from bareutils import text_reader, text_writer, response_code
-import bareutils.header as header
+from bareutils import text_reader, text_writer, response_code, header
 
 from .template import make_template
 from .utils import (
@@ -116,7 +111,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             path_prefix: str = '',
             rest_middleware: Optional[HttpMiddlewareCallback] = None,
             view_middleware: Optional[HttpMiddlewareCallback] = None
-    ):
+    ) -> Application:
         """Add the routes
 
         Args:
@@ -162,34 +157,26 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             wrap_middleware(view_middleware, self.view_graphiql)
         )
 
+        return app
+
     async def shutdown(self) -> None:
         """Shutdown the service"""
         self.cancellation_event.set()
         await self.subscription_count.wait()
 
     # pylint: disable=unused-argument
-    async def view_graphiql(
-            self,
-            scope: Scope,
-            info: Info,
-            matches: RouteMatches,
-            content: Content
-    ) -> HttpResponse:
+    async def view_graphiql(self, request: HttpRequest) -> HttpResponse:
         """Render the Graphiql view
 
-
         Args:
-            scope (Scope): The ASGI scope
-            info (Info): The user info
-            matches (RouteMatches): The route matches
-            content (Content): The request body
+            request (HttpRequest): The request.
 
         Returns:
-            HttpResponse: [description]
+            HttpResponse: The response
         """
 
-        host = get_host(scope['headers'])
-        scheme = get_scheme(scope)
+        host = get_host(request.scope['headers'])
+        scheme = get_scheme(request.scope)
         query_path = f'{scheme}://{host}{self.path_prefix}/graphql'
         ws_scheme = 'ws' if scheme == 'http' else 'wss'
         subscription_path = f'{ws_scheme}://{host}{self.path_prefix}/subscriptions'
@@ -202,46 +189,28 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             (b'content-type', b'text/html'),
             (b'content-length', str(len(body)).encode())
         ]
-        return response_code.OK, headers, text_writer(body)
+        return HttpResponse(response_code.OK, headers, text_writer(body))
 
     @abstractmethod
-    async def handle_websocket_subscription(
-            self,
-            scope: Scope,
-            info: Info,
-            matches: RouteMatches,
-            web_socket: WebSocket
-    ) -> None:
+    async def handle_websocket_subscription(self, request: WebSocketRequest) -> None:
         """Handle a websocket subscription
 
         Args:
-            scope (Scope): The ASGI scope
-            info (Info): The application info
-            matches (RouteMatches): The route matches
-            web_socket (WebSocket): The web socket to interact with
+            request (WebSocketRequest): The request
         """
 
-    async def handle_graphql(
-            self,
-            scope: Scope,
-            info: Info,
-            matches: RouteMatches,
-            content: Content
-    ) -> HttpResponse:
+    async def handle_graphql(self, request: HttpRequest) -> HttpResponse:
         """A request handler for graphql queries
 
         Args:
-            scope (Scope): The ASGI scope
-            info (Info): The application info object
-            matches (RouteMatches): The route matches
-            content (Content): The request body
+            scope (Scope): The Request
 
         Returns:
             HttpResponse: The HTTP response to the query request
         """
 
         try:
-            body = await self._get_query_document(scope['headers'], content)
+            body = await self._get_query_document(request)
 
             query: str = body['query']
             variables: Optional[Dict[str, Any]] = body.get('variables')
@@ -251,21 +220,19 @@ class GraphQLControllerBase(metaclass=ABCMeta):
 
             if not has_subscription(query_document):
                 return await self._handle_query_or_mutation(
-                    scope,
-                    info,
+                    request,
                     query,
                     variables,
                     operation_name
                 )
 
             # The subscription method is determined by the `allow` header.
-            allow = header.find(b'allow', scope['headers'], b'GET')
+            allow = header.find(b'allow', request.scope['headers'], b'GET')
             if allow == b'GET':
-                return self._handle_subscription_redirect(scope, body)
+                return self._handle_subscription_redirect(request, body)
 
             return await self._handle_streaming_subscription(
-                scope,
-                info,
+                request,
                 query,
                 variables,
                 operation_name
@@ -278,22 +245,17 @@ class GraphQLControllerBase(metaclass=ABCMeta):
                 (b'content-type', b'text/plain'),
                 (b'content-length', str(len(text)).encode())
             ]
-            return response_code.INTERNAL_SERVER_ERROR, headers, text_writer(text)
+            return HttpResponse(
+                response_code.INTERNAL_SERVER_ERROR,
+                headers,
+                text_writer(text)
+            )
 
-    async def handle_subscription_get(
-            self,
-            scope: Scope,
-            info: Info,
-            matches: RouteMatches,
-            content: Content
-    ) -> HttpResponse:
+    async def handle_subscription_get(self, request: HttpRequest) -> HttpResponse:
         """Handle a streaming subscription
 
         Args:
-            scope (Scope): The ASGI scope
-            info (Info): The application info object
-            matches (RouteMatches): The route matches
-            content (Content): The request body
+            request (HttpRequest): The request
 
         Returns:
             HttpResponse: The streaming response
@@ -301,14 +263,14 @@ class GraphQLControllerBase(metaclass=ABCMeta):
 
         LOGGER.debug(
             "Received GET streaming subscription request: http_version='%s'.",
-            scope['http_version']
+            request.scope['http_version']
         )
 
         body = {
             name.decode('utf-8'): self.loads(value[0].decode('utf-8'))
             for name, value in cast(
                 Dict[bytes, List[bytes]],
-                parse_qs(scope['query_string'])
+                parse_qs(request.scope['query_string'])
             ).items()
         }
 
@@ -317,27 +279,17 @@ class GraphQLControllerBase(metaclass=ABCMeta):
         operation_name: Optional[str] = body.get('operationName')
 
         return await self._handle_streaming_subscription(
-            scope,
-            info,
+            request,
             query,
             variables,
             operation_name
         )
 
-    async def handle_subscription_post(
-            self,
-            scope: Scope,
-            info: Info,
-            matches: RouteMatches,
-            content: Content
-    ) -> HttpResponse:
+    async def handle_subscription_post(self, request: HttpRequest) -> HttpResponse:
         """Handle a streaming subscription
 
         Args:
-            scope (Scope): The ASGI scope
-            info (Info): The application info object
-            matches (RouteMatches): The route matches
-            content (Content): The request body
+            request (HttpRequest): The request
 
         Returns:
             HttpResponse: A stream response
@@ -345,10 +297,10 @@ class GraphQLControllerBase(metaclass=ABCMeta):
 
         LOGGER.debug(
             "Received POST streaming subscription request: http_version='%s'.",
-            scope['http_version']
+            request.scope['http_version']
         )
 
-        text = await text_reader(content)
+        text = await text_reader(request.body)
         body = self.loads(text)
 
         query: str = body['query']
@@ -356,42 +308,41 @@ class GraphQLControllerBase(metaclass=ABCMeta):
         operation_name: Optional[str] = body.get('operationName')
 
         return await self._handle_streaming_subscription(
-            scope,
-            info,
+            request,
             query,
             variables,
             operation_name
         )
 
-    async def _get_query_document(
-            self,
-            headers: List[Header],
-            content: Content
-    ) -> Mapping[str, Any]:
-        content_type = header.content_type(headers)
+    async def _get_query_document(self, request: HttpRequest) -> Mapping[str, Any]:
+        content_type = header.content_type(request.scope['headers'])
         if content_type is None:
             raise ValueError('Content type not specified')
         media_type, parameters = content_type
 
         if media_type == b'application/graphql':
-            return {'query': await text_reader(content)}
+            return {'query': await text_reader(request.body)}
         elif media_type in (b'application/json', b'text/plain'):
-            return self.loads(await text_reader(content))
+            return self.loads(await text_reader(request.body))
         elif media_type == b'application/x-www-form-urlencoded':
-            body = parse_qs(await text_reader(content))
+            body = parse_qs(await text_reader(request.body))
             return {name: value[0] for name, value in body.items()}
         elif media_type == b'multipart/form-data':
             if parameters is None:
                 raise ValueError(
                     'Missing content type parameters for multipart/form-data'
                 )
+            param_dict = {
+                key.decode('utf-8'): val
+                for key, val in parameters.items()
+            }
+            multipart_dict = parse_multipart(
+                io.StringIO(await text_reader(request.body)),
+                param_dict
+            )
             return {
                 name: value[0]
-                for name, value in parse_multipart(
-                    io.StringIO(await text_reader(content)),
-                    {key.decode('utf-8'): val for key,
-                     val in parameters.items()}
-                ).items()
+                for name, value in multipart_dict.items()
             }
         else:
             raise RuntimeError(
@@ -400,21 +351,14 @@ class GraphQLControllerBase(metaclass=ABCMeta):
 
     async def _handle_query_or_mutation(
             self,
-            scope: Scope,
-            info: Info,
+            request: HttpRequest,
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str]
     ) -> HttpResponse:
         LOGGER.debug("Processing a query or mutation.")
 
-        result = await self.query(
-            query,
-            variables,
-            operation_name,
-            scope,
-            info
-        )
+        result = await self.query(request, query, variables, operation_name)
 
         response: Dict[str, Any] = {'data': result.data}
         if result.errors:
@@ -427,22 +371,22 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             (b'content-length', str(len(text)).encode())
         ]
 
-        return 200, headers, text_writer(text)
+        return HttpResponse(response_code.OK, headers, text_writer(text))
 
     def _handle_subscription_redirect(
             self,
-            scope: Scope,
+            request: HttpRequest,
             body: Mapping[str, Any]
     ) -> HttpResponse:
         # Handle a subscription by returning 201 (Created) with
         # the url location of the subscription.
         LOGGER.debug("Redirecting subscription request.")
-        scheme = scope['scheme']
+        scheme = request.scope['scheme']
         host = cast(
             bytes,
             header.find(  # type: ignore
                 b'host',
-                scope['headers'],
+                request.scope['headers'],
                 b'localhost'
             )
         ).decode()
@@ -458,12 +402,11 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             (b'access-control-expose-headers', b'location'),
             (b'location', location)
         ]
-        return response_code.CREATED, headers
+        return HttpResponse(response_code.CREATED, headers)
 
     async def _handle_streaming_subscription(
             self,
-            scope: Scope,
-            info: Info,
+            request: HttpRequest,
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str]
@@ -472,7 +415,8 @@ class GraphQLControllerBase(metaclass=ABCMeta):
         # If unspecified default to server sent events as they have better support.
         accept = cast(
             bytes,
-            header.find(b'accept', scope['headers'], b'text/event-stream')
+            header.find(
+                b'accept', request.scope['headers'], b'text/event-stream')
         )
         content_type = (
             b'application/stream+json'
@@ -480,13 +424,7 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             else accept
         )
 
-        result = await self.subscribe(
-            query,
-            variables,
-            operation_name,
-            scope,
-            info
-        )
+        result = await self.subscribe(request, query, variables, operation_name)
 
         is_sse = content_type == b'text/event-stream'
         encode = partial(_encode_sse if is_sse else _encode_json, self.dumps)
@@ -534,25 +472,27 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             (b'connection', b'keep-alive')
         ]
 
-        return response_code.OK, headers, send_events(self.subscription_count)
+        return HttpResponse(
+            response_code.OK,
+            headers,
+            send_events(self.subscription_count)
+        )
 
     @abstractmethod
     async def subscribe(
             self,
+            request: HttpRequest,
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str],
-            scope: Scope,
-            info: Info
     ) -> MapAsyncIterator:
         """Execute a subscription.
 
         Args:
+            request (HttpRequest): The http request.
             query (str): The subscription query.
             variables (Optional[Dict[str, Any]]): Optional variables.
             operation_name (Optional[str]): An optional operation name.
-            scope (Scope): The ASGI scope.
-            info (Info): The application info.
 
         Returns:
             MapAsyncIterator: An asynchronous iterator of the results.
@@ -561,20 +501,18 @@ class GraphQLControllerBase(metaclass=ABCMeta):
     @abstractmethod
     async def query(
             self,
+            request: HttpRequest,
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str],
-            scope: Scope,
-            info: Info
     ) -> ExecutionResult:
         """Execute a query
 
         Args:
+            request (HttpRequest): The http request.
             query (str): The subscription query.
             variables (Optional[Dict[str, Any]]): Optional variables.
             operation_name (Optional[str]): An optional operation name.
-            scope (Scope): The ASGI scope.
-            info (Info): The application info.
 
         Returns:
             ExecutionResult: The query results.
