@@ -6,15 +6,16 @@ import json
 import logging
 from typing import (
     Any,
+    AsyncIterator,
     Dict,
+    Iterable,
+    List,
     Mapping,
     MutableMapping,
     Optional,
-    AsyncIterator,
+    Set,
     Tuple,
     Union,
-    List,
-    Set
 )
 
 from bareasgi import WebSocket
@@ -56,11 +57,11 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
         self._subscriptions: MutableMapping[Id, asyncio.Future] = {}
         self._is_closed = False
 
-    async def start(self, subprotocols: List[str]):
+    async def start(self, subprotocols: Iterable[str]):
         """Start the WebSocket connection
 
         Args:
-            subprotocols (List[str]): Optional sub protocols
+            subprotocols (Iterable[str]): Optional sub protocols
 
         Raises:
             ProtocolError: If the protocol is not supported

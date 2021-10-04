@@ -177,8 +177,8 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             HttpResponse: The response.
         """
 
-        host = get_host(request.scope['headers'])
-        scheme = get_scheme(request.scope)
+        host = get_host(request)
+        scheme = get_scheme(request)
         query_path = f'{scheme}://{host}{self.path_prefix}/graphql'
         ws_scheme = 'ws' if scheme == 'http' else 'wss'
         subscription_path = f'{ws_scheme}://{host}{self.path_prefix}/subscriptions'

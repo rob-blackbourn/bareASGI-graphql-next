@@ -4,17 +4,16 @@ Utilities
 
 import asyncio
 from asyncio import Event
-from typing import AsyncIterator, List, Optional, Set, TYPE_CHECKING
+from typing import AsyncIterator, Iterable, Optional, Set, Tuple, TYPE_CHECKING
 
 import graphql
 
 from bareasgi import (
-    Scope,
-    Header,
+    make_middleware_chain,
+    HttpRequest,
     HttpRequestCallback,
     HttpMiddlewareCallback
 )
-from bareasgi.middleware import make_middleware_chain
 from graphql import OperationType
 from graphql.subscription.map_async_iterator import MapAsyncIterator
 
@@ -167,7 +166,7 @@ class ZeroEvent:
 
 def _first_valid_header(
         name: bytes,
-        headers: List[Header],
+        headers: Iterable[Tuple[bytes, bytes]],
         default: Optional[bytes]
 ) -> Optional[bytes]:
     return next(
@@ -182,7 +181,8 @@ def _first_valid_header(
     )
 
 
-def get_host(headers: List[Header]) -> str:
+def get_host(request: HttpRequest) -> str:
+    headers = request.scope['headers']
     host = _first_valid_header(b'x-forwarded-host', headers, None)
     if not host:
         host = _first_valid_header(b'host', headers, None)
@@ -191,6 +191,10 @@ def get_host(headers: List[Header]) -> str:
     return host.decode()
 
 
-def get_scheme(scope: Scope) -> str:
-    scheme = _first_valid_header(b'x-forwarded-proto', scope['headers'], None)
-    return scheme.decode() if scheme else scope['scheme']
+def get_scheme(request: HttpRequest) -> str:
+    scheme = _first_valid_header(
+        b'x-forwarded-proto',
+        request.scope['headers'],
+        None
+    )
+    return scheme.decode() if scheme else request.scope['scheme']
