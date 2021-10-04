@@ -18,12 +18,7 @@ import graphql
 from graphql import GraphQLSchema, ExecutionResult
 from graphql.execution import MiddlewareManager
 from graphql.subscription.map_async_iterator import MapAsyncIterator
-from baretypes import (
-    Scope,
-    Info,
-    RouteMatches,
-    WebSocket
-)
+from bareasgi import HttpRequest, WebSocketRequest
 
 from ..controller import GraphQLControllerBase
 from .websocket_handler import GraphQLWebSocketHandler
@@ -60,51 +55,40 @@ class GraphQLController(GraphQLControllerBase):
 
     async def subscribe(
             self,
+            request: HttpRequest,
             query: str,
             variables: Optional[Dict[str, Any]],
-            operation_name: Optional[str],
-            scope: Scope,
-            info: Info
+            operation_name: Optional[str]
     ) -> MapAsyncIterator:
         result = await graphql.subscribe(
             schema=self.schema,
             document=graphql.parse(query),
             variable_values=variables,
             operation_name=operation_name,
-            context_value={'scope': scope, 'info': info}
+            context_value=request
         )
         return cast(MapAsyncIterator, result)
 
     async def query(
             self,
+            request: HttpRequest,
             query: str,
             variables: Optional[Dict[str, Any]],
-            operation_name: Optional[str],
-            scope: Scope,
-            info: Info
+            operation_name: Optional[str]
     ) -> ExecutionResult:
         return await graphql.graphql(
             schema=self.schema,
             source=graphql.Source(query),  # source=query,
             variable_values=variables,
             operation_name=operation_name,
-            context_value={'scope': scope, 'info': info},
+            context_value=request,
             middleware=self.middleware
         )
 
-    async def handle_websocket_subscription(
-            self,
-            scope: Scope,
-            info: Info,
-            matches: RouteMatches,
-            web_socket: WebSocket
-    ) -> None:
+    async def handle_websocket_subscription(self, request: WebSocketRequest) -> None:
         """Handle a websocket subscription
 
         Args:
-            scope (Scope): The ASGI scope
-            info (Info): The application info
-            matches (RouteMatches): The route matches
-            web_socket (WebSocket): The web socket to interact with
+            request (WebSocketRequest): The request
         """
-        await self.ws_subscription_handler(scope, info, matches, web_socket)
+        await self.ws_subscription_handler(request)

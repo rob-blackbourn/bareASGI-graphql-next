@@ -1,6 +1,4 @@
-"""
-GraphQL controller
-"""
+"""Helper functions for adding the graphene middleware"""
 
 import json
 import logging
@@ -9,15 +7,16 @@ from typing import Any, Callable, Optional
 
 from graphene import Schema
 from bareasgi import Application
-from baretypes import (
-    Scope,
-    Info,
+from bareasgi import (
+    LifespanRequest,
     HttpMiddlewareCallback
 )
 
 from .controller import GrapheneController
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
+
+GRAPHENE_INFO_KEY = '__bareasgi_graphql_next.graphene__'
 
 
 def add_graphene(
@@ -51,11 +50,11 @@ def add_graphene(
         dumps (Callable[[Any], str], optional): The function to convert an
             object to a JSON string. Defaults to json.dumps.
     """
-    # pylint: disable=unused-argument
-    async def start_graphql(scope: Scope, info: Info, request) -> None:
+
+    async def start_graphql(request: LifespanRequest) -> None:
         """Start the GraphQL controller"""
 
-        logger.debug('Starting the GraphQL controller')
+        LOGGER.debug('Starting the GraphQL controller')
 
         controller = GrapheneController(
             schema,
@@ -71,17 +70,14 @@ def add_graphene(
             rest_middleware,
             view_middleware
         )
-        assert info is not None, 'Ensure the info dict is set'
-        info['__graphene_controller__'] = controller
+        request.info[GRAPHENE_INFO_KEY] = controller
 
-    # pylint: disable=unused-argument
-    async def stop_graphql(scope: Scope, info: Info, request) -> None:
+    async def stop_graphql(request: LifespanRequest) -> None:
         """Stop the GraphQL controller"""
 
-        logger.debug('Stopping the GraphQL controller')
+        LOGGER.debug('Stopping the GraphQL controller')
 
-        assert info is not None, 'Ensure the info dict is set'
-        graphql_controller: GrapheneController = info['__graphene_controller__']
+        graphql_controller: GrapheneController = request.info[GRAPHENE_INFO_KEY]
         await graphql_controller.shutdown()
 
     app.startup_handlers.append(start_graphql)

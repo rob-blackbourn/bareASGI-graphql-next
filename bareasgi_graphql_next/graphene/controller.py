@@ -10,7 +10,7 @@ from typing import (
     Union
 )
 
-from baretypes import Scope, Info, RouteMatches, WebSocket
+from bareasgi import WebSocketRequest, HttpRequest
 import graphene
 from graphql import ExecutionResult
 from graphql.execution import MiddlewareManager
@@ -51,47 +51,36 @@ class GrapheneController(GraphQLControllerBase):
 
     async def subscribe(
             self,
+            request: HttpRequest,
             query: str,
             variables: Optional[Dict[str, Any]],
-            operation_name: Optional[str],
-            scope: Scope,
-            info: Info
+            operation_name: Optional[str]
     ) -> MapAsyncIterator:
         return await self.schema.subscribe(
             query,
             variable_values=variables,
             operation_name=operation_name,
-            context_value={'scope': scope, 'info': info}
+            context_value=request
         )
 
     async def query(
             self,
+            request: HttpRequest,
             query: str,
             variables: Optional[Dict[str, Any]],
-            operation_name: Optional[str],
-            scope: Scope,
-            info: Info
+            operation_name: Optional[str]
     ) -> ExecutionResult:
         return await self.schema.execute_async(
             source=query,
             variable_values=variables,
             operation_name=operation_name,
-            context_value={'scope': scope, 'info': info}
+            context_value=request
         )
 
-    async def handle_websocket_subscription(
-            self,
-            scope: Scope,
-            info: Info,
-            matches: RouteMatches,
-            web_socket: WebSocket
-    ) -> None:
+    async def handle_websocket_subscription(self, request: WebSocketRequest) -> None:
         """Handle a websocket subscription
 
         Args:
-            scope (Scope): The ASGI scope
-            info (Info): The application info
-            matches (RouteMatches): The route matches
-            web_socket (WebSocket): The web socket to interact with
+            request (WebSocketRequest): The request
         """
-        await self.ws_subscription_handler(scope, info, matches, web_socket)
+        await self.ws_subscription_handler(request)

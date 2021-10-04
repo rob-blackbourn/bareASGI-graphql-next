@@ -6,18 +6,19 @@ import json
 import logging
 from typing import (
     Any,
+    AsyncIterator,
     Dict,
+    Iterable,
+    List,
     Mapping,
     MutableMapping,
     Optional,
-    AsyncIterator,
+    Set,
     Tuple,
     Union,
-    List,
-    Set
 )
 
-from baretypes import Info, Scope, WebSocket
+from bareasgi import WebSocket
 import graphql
 from graphql import ExecutionResult, GraphQLError
 from graphql.subscription.map_async_iterator import MapAsyncIterator
@@ -51,18 +52,16 @@ Id = Union[str, int]
 class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
     """A GraphQL WebSocket handler instance"""
 
-    def __init__(self, web_socket: WebSocket, scope: Scope, info: Info) -> None:
+    def __init__(self, web_socket: WebSocket) -> None:
         self.web_socket = web_socket
-        self.scope = scope
-        self.info = info
         self._subscriptions: MutableMapping[Id, asyncio.Future] = {}
         self._is_closed = False
 
-    async def start(self, subprotocols: List[str]):
+    async def start(self, subprotocols: Iterable[str]):
         """Start the WebSocket connection
 
         Args:
-            subprotocols (List[str]): Optional sub protocols
+            subprotocols (Iterable[str]): Optional sub protocols
 
         Raises:
             ProtocolError: If the protocol is not supported
@@ -150,8 +149,7 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
         else:
             raise ProtocolError(f"Received unknown message type '{type_}'.")
 
-    # pylint: disable=unused-argument
-    async def _on_connection_init(self, id_: Optional[Id], connection_params: Optional[Any]):
+    async def _on_connection_init(self, id_: Optional[Id], _connection_params: Optional[Any]):
         try:
             await self.web_socket.send(self._to_message('connection_ack', id_))
         except Exception as error:
