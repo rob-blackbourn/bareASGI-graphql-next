@@ -1,0 +1,1581 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="GraphQL support for bareASGI">
+      
+      
+      
+      
+      <link rel="icon" href="../../images/favicon.ico">
+      <meta name="generator" content="mkdocs-1.2.2, mkdocs-material-7.3.1">
+    
+    
+      
+        <title>bareasgi_graphene - bareASGI-graphql-next</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.1c75ef36.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.3f5d1f46.min.css">
+        
+      
+    
+    
+    
+      
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700%7CRoboto+Mono&display=fallback">
+        <style>:root{--md-text-font-family:"Roboto";--md-code-font-family:"Roboto Mono"}</style>
+      
+    
+    
+    
+      <link rel="stylesheet" href="../../css/custom.css">
+    
+    
+      
+
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    <script>function __prefix(e){return new URL("../..",location).pathname+"."+e}function __get(e,t=localStorage){return JSON.parse(t.getItem(__prefix(e)))}</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#function-bareasgi_graphql_nextgrapheneadd_graphene" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="bareASGI-graphql-next" class="md-header__button md-logo" aria-label="bareASGI-graphql-next" data-md-component="logo">
+      
+  <img src="../../images/peach.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            bareASGI-graphql-next
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              bareasgi_graphene
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+    
+      <div class="md-header__source">
+        
+<a href="https://github.com/rob-blackbourn/bareASGI-graphql-next" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rob-blackbourn/bareASGI-graphql-next
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="bareASGI-graphql-next" class="md-nav__button md-logo" aria-label="bareASGI-graphql-next" data-md-component="logo">
+      
+  <img src="../../images/peach.svg" alt="logo">
+
+    </a>
+    bareASGI-graphql-next
+  </label>
+  
+    <div class="md-nav__source">
+      
+<a href="https://github.com/rob-blackbourn/bareASGI-graphql-next" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    rob-blackbourn/bareASGI-graphql-next
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        GraphQL with bareASGI
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          User Guide
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="User Guide" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          User Guide
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/getting-started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/clients/" class="md-nav__link">
+        Clients
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="API" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bareasgi_graphql_next/" class="md-nav__link">
+        bareasgi_graphql_next
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          bareasgi_graphene
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        bareasgi_graphene
+      </a>
+      
+        
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#function-bareasgi_graphql_nextgrapheneadd_graphene" class="md-nav__link">
+    function bareasgi_graphql_next.graphene.add_graphene
+  </a>
+  
+    <nav class="md-nav" aria-label="function bareasgi_graphql_next.graphene.add_graphene">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-graphenecontrollergraphqlcontrollerbase" class="md-nav__link">
+    class GrapheneController(GraphQLControllerBase)
+  </a>
+  
+    <nav class="md-nav" aria-label="class GrapheneController(GraphQLControllerBase)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_1" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method-graphenecontrolleradd_routes" class="md-nav__link">
+    method GrapheneController.add_routes
+  </a>
+  
+    <nav class="md-nav" aria-label="method GrapheneController.add_routes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_2" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerhandle_graphql" class="md-nav__link">
+    async method GrapheneController.handle_graphql
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.handle_graphql">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_3" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerhandle_subscription_get" class="md-nav__link">
+    async method GrapheneController.handle_subscription_get
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.handle_subscription_get">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_4" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerhandle_subscription_post" class="md-nav__link">
+    async method GrapheneController.handle_subscription_post
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.handle_subscription_post">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_5" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerhandle_websocket_subscription" class="md-nav__link">
+    async method GrapheneController.handle_websocket_subscription
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.handle_websocket_subscription">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_6" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerquery" class="md-nav__link">
+    async method GrapheneController.query
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.query">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_7" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollershutdown" class="md-nav__link">
+    async method GrapheneController.shutdown
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.shutdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_8" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollersubscribe" class="md-nav__link">
+    async method GrapheneController.subscribe
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.subscribe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_9" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_8" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerview_graphiql" class="md-nav__link">
+    async method GrapheneController.view_graphiql
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.view_graphiql">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_10" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_9" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#function-bareasgi_graphql_nextgrapheneadd_graphene" class="md-nav__link">
+    function bareasgi_graphql_next.graphene.add_graphene
+  </a>
+  
+    <nav class="md-nav" aria-label="function bareasgi_graphql_next.graphene.add_graphene">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#class-graphenecontrollergraphqlcontrollerbase" class="md-nav__link">
+    class GrapheneController(GraphQLControllerBase)
+  </a>
+  
+    <nav class="md-nav" aria-label="class GrapheneController(GraphQLControllerBase)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_1" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_1" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method-graphenecontrolleradd_routes" class="md-nav__link">
+    method GrapheneController.add_routes
+  </a>
+  
+    <nav class="md-nav" aria-label="method GrapheneController.add_routes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_2" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_2" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_1" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerhandle_graphql" class="md-nav__link">
+    async method GrapheneController.handle_graphql
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.handle_graphql">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_3" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_3" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_2" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerhandle_subscription_get" class="md-nav__link">
+    async method GrapheneController.handle_subscription_get
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.handle_subscription_get">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_4" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_4" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_3" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerhandle_subscription_post" class="md-nav__link">
+    async method GrapheneController.handle_subscription_post
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.handle_subscription_post">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_5" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_5" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_4" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerhandle_websocket_subscription" class="md-nav__link">
+    async method GrapheneController.handle_websocket_subscription
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.handle_websocket_subscription">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_6" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_6" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_5" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerquery" class="md-nav__link">
+    async method GrapheneController.query
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.query">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_7" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_7" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_6" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollershutdown" class="md-nav__link">
+    async method GrapheneController.shutdown
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.shutdown">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_8" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_7" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollersubscribe" class="md-nav__link">
+    async method GrapheneController.subscribe
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.subscribe">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_9" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_8" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_8" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#async-method-graphenecontrollerview_graphiql" class="md-nav__link">
+    async method GrapheneController.view_graphiql
+  </a>
+  
+    <nav class="md-nav" aria-label="async method GrapheneController.view_graphiql">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#summary_10" class="md-nav__link">
+    Summary
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters_9" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#returns_9" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                  <h1>bareasgi_graphene</h1>
+                
+                <p>
+<div class="autodoc-callable">
+<h3 class="autodoc-title" id="function-bareasgi_graphql_nextgrapheneadd_graphene">
+  <span class="autodoc-title-type">function </span><span class="autodoc-qualifier">bareasgi_graphql_next.graphene</span><span class="autodoc-punctuation">.</span><span class="autodoc-title-name">add_graphene</span>
+<a class="headerlink" href="#function-bareasgi_graphql_nextgrapheneadd_graphene" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h4>
+<p>Add graphql support to an bareASGI application.</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-qualifier">bareasgi_graphql_next.graphene</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">add_graphene</var><span class="autodoc-punctuation">(</span><br />
+<div class="autodoc-argument">
+        <var class="autodoc-varname">app</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Application</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">schema</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Schema</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">path_prefix</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">rest_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[HttpMiddlewareCallback]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">view_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[HttpMiddlewareCallback]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">graphql_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">[type]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">loads</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[str], Any]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">dumps</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[Any], str]</span></div>
+<span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">Any</span></div>
+<br />
+<div class="autodoc-parameters">
+<h4 class="autodoc-title" id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h4>
+<var class="autodoc-varname">app</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Application</span><p>The bareASGI application.</p>
+<var class="autodoc-varname">schema</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Schema</span><p>The Graphene schema to use.</p>
+<var class="autodoc-varname">path_prefix</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><span class="autodoc-punctuation"> (optional)</span><p>An optional path prefix from which to
+provide endpoints. Defaults to ''.</p>
+<var class="autodoc-varname">rest_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[HttpMiddlewareCallback]</span><span class="autodoc-punctuation"> (optional)</span><p>Middleware
+for the rest end points. Defaults to None.</p>
+<var class="autodoc-varname">view_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[HttpMiddlewareCallback]</span><span class="autodoc-punctuation"> (optional)</span><p>Middleware
+for the GraphiQL end point. Defaults to None.</p>
+<var class="autodoc-varname">graphql_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">[type]</span><span class="autodoc-punctuation"> (optional)</span><p>Middleware for graphql-core-next.
+Defaults to None.</p>
+<var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span><span class="autodoc-punctuation"> (optional)</span><p>The time to wait before abandoning an
+unused subscription. Defaults to 10.</p>
+<var class="autodoc-varname">loads</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[str], Any]</span><span class="autodoc-punctuation"> (optional)</span><p>The function to convert a
+JSON string to an object. Defaults to json.loads.</p>
+<var class="autodoc-varname">dumps</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[Any], str]</span><span class="autodoc-punctuation"> (optional)</span><p>The function to convert an
+object to a JSON string. Defaults to json.dumps.</p>
+</div>
+<div class="autodoc-returns">
+<h4 class="autodoc-title" id="returns">Returns<a class="headerlink" href="#returns" title="Permanent link">&para;</a></h4>
+<span class="autodoc-vartype">Any</span><span class="autodoc-punctuation">: </span>
+
+</div>
+<div class="autodoc-raises">
+
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+</p>
+<p>
+<div class="autodoc-class">
+<h3 class="autodoc-title" id="class-graphenecontrollergraphqlcontrollerbase">
+  <span class="autodoc-title-type">class </span><span class="autodoc-title-name">GrapheneController</span><span class="autodoc-punctuation">(</span><span class="autodoc-type">GraphQLControllerBase</span><span class="autodoc-punctuation">)</span>
+<a class="headerlink" href="#class-graphenecontrollergraphqlcontrollerbase" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary_1">Summary<a class="headerlink" href="#summary_1" title="Permanent link">&para;</a></h4>
+<p>Create a Graphene controller</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-qualifier">bareasgi_graphql_next.graphene</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">GrapheneController</var><span class="autodoc-punctuation">(</span><br />
+<div class="autodoc-argument">
+        <var class="autodoc-varname">schema</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">graphene.Schema</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">path_prefix</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[Union[Tuple, List, MiddlewareManager]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">loads</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[str], Any]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">dumps</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[Any], str]</span></div>
+<span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">None</span></div>
+<br />
+<div class="autodoc-parameters">
+<h4 class="autodoc-title" id="parameters_1">Parameters<a class="headerlink" href="#parameters_1" title="Permanent link">&para;</a></h4>
+<var class="autodoc-varname">schema</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">graphene.Schema</span><p>The Graphene schema</p>
+<var class="autodoc-varname">path_prefix</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><p>The path prefix.</p>
+<var class="autodoc-varname">middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[Union[Tuple, List, MiddlewareManager]</span><p>The
+middleware. Defaults to None.</p>
+<var class="autodoc-varname">ping_interval</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">float</span><p>The WebSocket ping interval.</p>
+<var class="autodoc-varname">loads</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[str], Any]</span><p>The function to convert a JSON string
+to an object.</p>
+<var class="autodoc-varname">dumps</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Callable[[Any], str]</span><p>The function to convert an object to a
+JSON string. Defaults to json.dumps.</p>
+</div>
+<div class="autodoc-attributes">
+
+</div>
+<div class="autodoc-properties">
+
+</div>
+<div class="autodoc-classmethods"></div>
+<div class="autodoc-methods">
+<div class="autodoc-callable">
+<h3 class="autodoc-title" id="method-graphenecontrolleradd_routes">
+  <span class="autodoc-title-type">method </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><span class="autodoc-title-name">add_routes</span>
+<a class="headerlink" href="#method-graphenecontrolleradd_routes" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary_2">Summary<a class="headerlink" href="#summary_2" title="Permanent link">&para;</a></h4>
+<p>Add the routes</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">add_routes</var><span class="autodoc-punctuation">(</span><br />
+<div class="autodoc-argument">
+        <var class="autodoc-varname">app</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Application</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">path_prefix</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">rest_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[HttpMiddlewareCallback]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">view_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[HttpMiddlewareCallback]</span></div>
+<span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">Application</span></div>
+<br />
+<div class="autodoc-parameters">
+<h4 class="autodoc-title" id="parameters_2">Parameters<a class="headerlink" href="#parameters_2" title="Permanent link">&para;</a></h4>
+<var class="autodoc-varname">app</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Application</span><p>The ASGI application.</p>
+<var class="autodoc-varname">path_prefix</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><span class="autodoc-punctuation"> (optional)</span><p>The path prefix. Defaults to ''.</p>
+<var class="autodoc-varname">rest_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[HttpMiddlewareCallback]</span><span class="autodoc-punctuation"> (optional)</span><p>The
+rest middleware. Defaults to None.</p>
+<var class="autodoc-varname">view_middleware</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[HttpMiddlewareCallback]</span><span class="autodoc-punctuation"> (optional)</span><p>The
+view middleware. Defaults to None.</p>
+</div>
+<div class="autodoc-returns">
+<h4 class="autodoc-title" id="returns_1">Returns<a class="headerlink" href="#returns_1" title="Permanent link">&para;</a></h4>
+<span class="autodoc-vartype">Application</span><span class="autodoc-punctuation">: </span>
+<span class="autodoc-summary">The application.</span>
+</div>
+<div class="autodoc-raises">
+
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+<div class="autodoc-callable">
+<h3 class="autodoc-title" id="async-method-graphenecontrollerhandle_graphql">
+  <span class="autodoc-title-type">async method </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><span class="autodoc-title-name">handle_graphql</span>
+<a class="headerlink" href="#async-method-graphenecontrollerhandle_graphql" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary_3">Summary<a class="headerlink" href="#summary_3" title="Permanent link">&para;</a></h4>
+<p>A request handler for graphql queries</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-keyword">async</span><span> </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">handle_graphql</var><span class="autodoc-punctuation">(</span><br />
+<div class="autodoc-argument">
+        <var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span></div>
+<span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">HttpResponse</span></div>
+<br />
+<div class="autodoc-parameters">
+<h4 class="autodoc-title" id="parameters_3">Parameters<a class="headerlink" href="#parameters_3" title="Permanent link">&para;</a></h4>
+<var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span><p></p>
+</div>
+<div class="autodoc-returns">
+<h4 class="autodoc-title" id="returns_2">Returns<a class="headerlink" href="#returns_2" title="Permanent link">&para;</a></h4>
+<span class="autodoc-vartype">HttpResponse</span><span class="autodoc-punctuation">: </span>
+<span class="autodoc-summary">The HTTP response to the query request</span>
+</div>
+<div class="autodoc-raises">
+
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+<div class="autodoc-callable">
+<h3 class="autodoc-title" id="async-method-graphenecontrollerhandle_subscription_get">
+  <span class="autodoc-title-type">async method </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><span class="autodoc-title-name">handle_subscription_get</span>
+<a class="headerlink" href="#async-method-graphenecontrollerhandle_subscription_get" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary_4">Summary<a class="headerlink" href="#summary_4" title="Permanent link">&para;</a></h4>
+<p>Handle a streaming subscription</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-keyword">async</span><span> </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">handle_subscription_get</var><span class="autodoc-punctuation">(</span><br />
+<div class="autodoc-argument">
+        <var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span></div>
+<span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">HttpResponse</span></div>
+<br />
+<div class="autodoc-parameters">
+<h4 class="autodoc-title" id="parameters_4">Parameters<a class="headerlink" href="#parameters_4" title="Permanent link">&para;</a></h4>
+<var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span><p>The request</p>
+</div>
+<div class="autodoc-returns">
+<h4 class="autodoc-title" id="returns_3">Returns<a class="headerlink" href="#returns_3" title="Permanent link">&para;</a></h4>
+<span class="autodoc-vartype">HttpResponse</span><span class="autodoc-punctuation">: </span>
+<span class="autodoc-summary">The streaming response</span>
+</div>
+<div class="autodoc-raises">
+
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+<div class="autodoc-callable">
+<h3 class="autodoc-title" id="async-method-graphenecontrollerhandle_subscription_post">
+  <span class="autodoc-title-type">async method </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><span class="autodoc-title-name">handle_subscription_post</span>
+<a class="headerlink" href="#async-method-graphenecontrollerhandle_subscription_post" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary_5">Summary<a class="headerlink" href="#summary_5" title="Permanent link">&para;</a></h4>
+<p>Handle a streaming subscription</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-keyword">async</span><span> </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">handle_subscription_post</var><span class="autodoc-punctuation">(</span><br />
+<div class="autodoc-argument">
+        <var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span></div>
+<span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">HttpResponse</span></div>
+<br />
+<div class="autodoc-parameters">
+<h4 class="autodoc-title" id="parameters_5">Parameters<a class="headerlink" href="#parameters_5" title="Permanent link">&para;</a></h4>
+<var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span><p>The request</p>
+</div>
+<div class="autodoc-returns">
+<h4 class="autodoc-title" id="returns_4">Returns<a class="headerlink" href="#returns_4" title="Permanent link">&para;</a></h4>
+<span class="autodoc-vartype">HttpResponse</span><span class="autodoc-punctuation">: </span>
+<span class="autodoc-summary">A stream response</span>
+</div>
+<div class="autodoc-raises">
+
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+<div class="autodoc-callable">
+<h3 class="autodoc-title" id="async-method-graphenecontrollerhandle_websocket_subscription">
+  <span class="autodoc-title-type">async method </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><span class="autodoc-title-name">handle_websocket_subscription</span>
+<a class="headerlink" href="#async-method-graphenecontrollerhandle_websocket_subscription" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary_6">Summary<a class="headerlink" href="#summary_6" title="Permanent link">&para;</a></h4>
+<p>Handle a websocket subscription</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-keyword">async</span><span> </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">handle_websocket_subscription</var><span class="autodoc-punctuation">(</span><br />
+<div class="autodoc-argument">
+        <var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">WebSocketRequest</span></div>
+<span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">Any</span></div>
+<br />
+<div class="autodoc-parameters">
+<h4 class="autodoc-title" id="parameters_6">Parameters<a class="headerlink" href="#parameters_6" title="Permanent link">&para;</a></h4>
+<var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">WebSocketRequest</span><p>The request</p>
+</div>
+<div class="autodoc-returns">
+<h4 class="autodoc-title" id="returns_5">Returns<a class="headerlink" href="#returns_5" title="Permanent link">&para;</a></h4>
+<span class="autodoc-vartype">Any</span><span class="autodoc-punctuation">: </span>
+
+</div>
+<div class="autodoc-raises">
+
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+<div class="autodoc-callable">
+<h3 class="autodoc-title" id="async-method-graphenecontrollerquery">
+  <span class="autodoc-title-type">async method </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><span class="autodoc-title-name">query</span>
+<a class="headerlink" href="#async-method-graphenecontrollerquery" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary_7">Summary<a class="headerlink" href="#summary_7" title="Permanent link">&para;</a></h4>
+<p>Execute a query</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-keyword">async</span><span> </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">query</var><span class="autodoc-punctuation">(</span><br />
+<div class="autodoc-argument">
+        <var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">query</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">variables</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[Dict[str, Any]]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">operation_name</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[str]</span></div>
+<span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">ExecutionResult</span></div>
+<br />
+<div class="autodoc-parameters">
+<h4 class="autodoc-title" id="parameters_7">Parameters<a class="headerlink" href="#parameters_7" title="Permanent link">&para;</a></h4>
+<var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span><p>The http request.</p>
+<var class="autodoc-varname">query</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><p>The subscription query.</p>
+<var class="autodoc-varname">variables</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[Dict[str, Any]]</span><p>Optional variables.</p>
+<var class="autodoc-varname">operation_name</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[str]</span><p>An optional operation name.</p>
+</div>
+<div class="autodoc-returns">
+<h4 class="autodoc-title" id="returns_6">Returns<a class="headerlink" href="#returns_6" title="Permanent link">&para;</a></h4>
+<span class="autodoc-vartype">ExecutionResult</span><span class="autodoc-punctuation">: </span>
+<span class="autodoc-summary">The query results.</span>
+</div>
+<div class="autodoc-raises">
+
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+<div class="autodoc-callable">
+<h3 class="autodoc-title" id="async-method-graphenecontrollershutdown">
+  <span class="autodoc-title-type">async method </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><span class="autodoc-title-name">shutdown</span>
+<a class="headerlink" href="#async-method-graphenecontrollershutdown" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary_8">Summary<a class="headerlink" href="#summary_8" title="Permanent link">&para;</a></h4>
+<p>Shutdown the service</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-keyword">async</span><span> </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">shutdown</var><span class="autodoc-punctuation">(</span><span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">Any</span></div>
+<br />
+<div class="autodoc-returns">
+<h4 class="autodoc-title" id="returns_7">Returns<a class="headerlink" href="#returns_7" title="Permanent link">&para;</a></h4>
+<span class="autodoc-vartype">Any</span><span class="autodoc-punctuation">: </span>
+
+</div>
+<div class="autodoc-raises">
+
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+<div class="autodoc-callable">
+<h3 class="autodoc-title" id="async-method-graphenecontrollersubscribe">
+  <span class="autodoc-title-type">async method </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><span class="autodoc-title-name">subscribe</span>
+<a class="headerlink" href="#async-method-graphenecontrollersubscribe" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary_9">Summary<a class="headerlink" href="#summary_9" title="Permanent link">&para;</a></h4>
+<p>Execute a subscription.</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-keyword">async</span><span> </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">subscribe</var><span class="autodoc-punctuation">(</span><br />
+<div class="autodoc-argument">
+        <var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">query</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">variables</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[Dict[str, Any]]</span><span class="autodoc-punctuation">,</span></div>
+<div class="autodoc-argument">
+        <var class="autodoc-varname">operation_name</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[str]</span></div>
+<span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">MapAsyncIterator</span></div>
+<br />
+<div class="autodoc-parameters">
+<h4 class="autodoc-title" id="parameters_8">Parameters<a class="headerlink" href="#parameters_8" title="Permanent link">&para;</a></h4>
+<var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span><p>The http request.</p>
+<var class="autodoc-varname">query</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">str</span><p>The subscription query.</p>
+<var class="autodoc-varname">variables</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[Dict[str, Any]]</span><p>Optional variables.</p>
+<var class="autodoc-varname">operation_name</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">Optional[str]</span><p>An optional operation name.</p>
+</div>
+<div class="autodoc-returns">
+<h4 class="autodoc-title" id="returns_8">Returns<a class="headerlink" href="#returns_8" title="Permanent link">&para;</a></h4>
+<span class="autodoc-vartype">MapAsyncIterator</span><span class="autodoc-punctuation">: </span>
+<span class="autodoc-summary">An asynchronous iterator of the results.</span>
+</div>
+<div class="autodoc-raises">
+
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+<div class="autodoc-callable">
+<h3 class="autodoc-title" id="async-method-graphenecontrollerview_graphiql">
+  <span class="autodoc-title-type">async method </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><span class="autodoc-title-name">view_graphiql</span>
+<a class="headerlink" href="#async-method-graphenecontrollerview_graphiql" title="Permanent link">&para;</a></h3>
+<h4 class="autodoc-title" id="summary_10">Summary<a class="headerlink" href="#summary_10" title="Permanent link">&para;</a></h4>
+<p>Render the Graphiql view</p>
+<div class="autodoc-description">
+
+</div>
+<div class="autodoc-signature"><span class="autodoc-keyword">async</span><span> </span><span class="autodoc-qualifier">GrapheneController</span><span class="autodoc-punctuation">.</span><var class="autodoc-varname">view_graphiql</var><span class="autodoc-punctuation">(</span><br />
+<div class="autodoc-argument">
+        <var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span></div>
+<span class="autodoc-punctuation">)</span><span class="autodoc-punctuation"> -&gt; </span><span class="autodoc-vartype">HttpResponse</span></div>
+<br />
+<div class="autodoc-parameters">
+<h4 class="autodoc-title" id="parameters_9">Parameters<a class="headerlink" href="#parameters_9" title="Permanent link">&para;</a></h4>
+<var class="autodoc-varname">request</var><span class="autodoc-punctuation">: </span><span class="autodoc-vartype">HttpRequest</span><p>The request.</p>
+</div>
+<div class="autodoc-returns">
+<h4 class="autodoc-title" id="returns_9">Returns<a class="headerlink" href="#returns_9" title="Permanent link">&para;</a></h4>
+<span class="autodoc-vartype">HttpResponse</span><span class="autodoc-punctuation">: </span>
+<span class="autodoc-summary">The response.</span>
+</div>
+<div class="autodoc-raises">
+
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+</div>
+<div class="autodoc-examples">
+
+</div>
+</div>
+</p>
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../bareasgi_graphql_next/" class="md-footer__link md-footer__link--prev" aria-label="Previous: bareasgi_graphql_next" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              bareasgi_graphql_next
+            </div>
+          </div>
+        </a>
+      
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        
+          Made with
+          <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+            Material for MkDocs
+          </a>
+        
+        
+      </div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "translations": {"clipboard.copy": "Copy to clipboard", "clipboard.copied": "Copied to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.placeholder": "Type to start searching", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.term.missing": "Missing", "select.version.title": "Select version"}, "search": "../../assets/javascripts/workers/search.e99e714c.min.js", "version": {"provider": "mike", "default": "stable"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c7d1b464.min.js"></script>
+      
+    
+  </body>
+</html>
