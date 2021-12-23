@@ -177,21 +177,37 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             HttpResponse: The response.
         """
 
-        host = get_host(request)
-        scheme = get_scheme(request)
-        query_path = f'{scheme}://{host}{self.path_prefix}/graphql'
-        ws_scheme = 'ws' if scheme == 'http' else 'wss'
-        subscription_path = f'{ws_scheme}://{host}{self.path_prefix}/subscriptions'
-        body = make_template(
-            host,
-            query_path,
-            subscription_path
-        )
-        headers = [
-            (b'content-type', b'text/html'),
-            (b'content-length', str(len(body)).encode())
-        ]
-        return HttpResponse(response_code.OK, headers, text_writer(body))
+        try:
+            host = get_host(request)
+            scheme = get_scheme(request)
+            query_path = f'{scheme}://{host}{self.path_prefix}/graphql'
+            ws_scheme = 'ws' if scheme == 'http' else 'wss'
+            subscription_path = f'{ws_scheme}://{host}{self.path_prefix}/subscriptions'
+            body = make_template(
+                host,
+                query_path,
+                subscription_path
+            )
+            headers = [
+                (b'content-type', b'text/html'),
+                (b'content-length', str(len(body)).encode())
+            ]
+            return HttpResponse(response_code.OK, headers, text_writer(body))
+
+        # pylint: disable=bare-except
+        except:
+            LOGGER.exception("Failed to handle grahphiql request")
+
+            text = 'Internal server error'
+            headers = [
+                (b'content-type', b'text/plain'),
+                (b'content-length', str(len(text)).encode())
+            ]
+            return HttpResponse(
+                response_code.INTERNAL_SERVER_ERROR,
+                headers,
+                text_writer(text)
+            )
 
     @abstractmethod
     async def handle_websocket_subscription(self, request: WebSocketRequest) -> None:
@@ -242,6 +258,8 @@ class GraphQLControllerBase(metaclass=ABCMeta):
 
         # pylint: disable=bare-except
         except:
+            LOGGER.exception("Failed to handle graphql query request")
+
             text = 'Internal server error'
             headers = [
                 (b'content-type', b'text/plain'),
@@ -263,29 +281,45 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             HttpResponse: The streaming response
         """
 
-        LOGGER.debug(
-            "Received GET streaming subscription request: http_version='%s'.",
-            request.scope['http_version']
-        )
+        try:
+            LOGGER.debug(
+                "Received GET streaming subscription request: http_version='%s'.",
+                request.scope['http_version']
+            )
 
-        body = {
-            name.decode('utf-8'): self.loads(value[0].decode('utf-8'))
-            for name, value in cast(
-                Dict[bytes, List[bytes]],
-                parse_qs(request.scope['query_string'])
-            ).items()
-        }
+            body = {
+                name.decode('utf-8'): self.loads(value[0].decode('utf-8'))
+                for name, value in cast(
+                    Dict[bytes, List[bytes]],
+                    parse_qs(request.scope['query_string'])
+                ).items()
+            }
 
-        query: str = body['query']
-        variables: Optional[Dict[str, Any]] = body.get('variables')
-        operation_name: Optional[str] = body.get('operationName')
+            query: str = body['query']
+            variables: Optional[Dict[str, Any]] = body.get('variables')
+            operation_name: Optional[str] = body.get('operationName')
 
-        return await self._handle_streaming_subscription(
-            request,
-            query,
-            variables,
-            operation_name
-        )
+            return await self._handle_streaming_subscription(
+                request,
+                query,
+                variables,
+                operation_name
+            )
+
+        # pylint: disable=bare-except
+        except:
+            LOGGER.exception("Failed to handle graphql GET subscription")
+
+            text = 'Internal server error'
+            headers = [
+                (b'content-type', b'text/plain'),
+                (b'content-length', str(len(text)).encode())
+            ]
+            return HttpResponse(
+                response_code.INTERNAL_SERVER_ERROR,
+                headers,
+                text_writer(text)
+            )
 
     async def handle_subscription_post(self, request: HttpRequest) -> HttpResponse:
         """Handle a streaming subscription
@@ -297,24 +331,40 @@ class GraphQLControllerBase(metaclass=ABCMeta):
             HttpResponse: A stream response
         """
 
-        LOGGER.debug(
-            "Received POST streaming subscription request: http_version='%s'.",
-            request.scope['http_version']
-        )
+        try:
+            LOGGER.debug(
+                "Received POST streaming subscription request: http_version='%s'.",
+                request.scope['http_version']
+            )
 
-        text = await text_reader(request.body)
-        body = self.loads(text)
+            text = await text_reader(request.body)
+            body = self.loads(text)
 
-        query: str = body['query']
-        variables: Optional[Dict[str, Any]] = body.get('variables')
-        operation_name: Optional[str] = body.get('operationName')
+            query: str = body['query']
+            variables: Optional[Dict[str, Any]] = body.get('variables')
+            operation_name: Optional[str] = body.get('operationName')
 
-        return await self._handle_streaming_subscription(
-            request,
-            query,
-            variables,
-            operation_name
-        )
+            return await self._handle_streaming_subscription(
+                request,
+                query,
+                variables,
+                operation_name
+            )
+
+        # pylint: disable=bare-except
+        except:
+            LOGGER.exception("Failed to handle graphql POST subscription")
+
+            text = 'Internal server error'
+            headers = [
+                (b'content-type', b'text/plain'),
+                (b'content-length', str(len(text)).encode())
+            ]
+            return HttpResponse(
+                response_code.INTERNAL_SERVER_ERROR,
+                headers,
+                text_writer(text)
+            )
 
     async def _get_query_document(self, request: HttpRequest) -> Mapping[str, Any]:
         content_type = header.content_type(request.scope['headers'])
