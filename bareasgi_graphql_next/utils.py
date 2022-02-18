@@ -6,16 +6,19 @@ import asyncio
 from asyncio import Event
 from typing import AsyncIterator, Iterable, Optional, Set, Tuple, TYPE_CHECKING
 
-import graphql
-
 from bareasgi import (
     make_middleware_chain,
     HttpRequest,
     HttpRequestCallback,
     HttpMiddlewareCallback
 )
-from graphql import OperationType
-from graphql.subscription.map_async_iterator import MapAsyncIterator
+from graphql import (
+    DefinitionNode,
+    DocumentNode,
+    MapAsyncIterator,
+    OperationDefinitionNode,
+    OperationType
+)
 
 if TYPE_CHECKING:
     # pylint: disable=ungrouped-imports
@@ -89,18 +92,18 @@ async def cancellable_aiter(
                 pending.add(sleep_task)
 
 
-def _is_subscription(definition: graphql.DefinitionNode) -> bool:
+def _is_subscription(definition: DefinitionNode) -> bool:
     return isinstance(
         definition,
-        graphql.OperationDefinitionNode
+        OperationDefinitionNode
     ) and definition.operation is OperationType.SUBSCRIPTION
 
 
-def has_subscription(document: graphql.DocumentNode) -> bool:
+def has_subscription(document: DocumentNode) -> bool:
     """Check if a document has a subscription
 
     Args:
-        document (graphql.DocumentNode): The document
+        document (DocumentNode): The document
 
     Returns:
         bool: True if the document contains a subscription
@@ -182,6 +185,17 @@ def _first_valid_header(
 
 
 def get_host(request: HttpRequest) -> str:
+    """Get the host from the header of an http request.
+
+    Args:
+        request (HttpRequest): The request.
+
+    Raises:
+        KeyError: If there is no appropriate header.
+
+    Returns:
+        str: The host.
+    """
     headers = request.scope['headers']
     host = _first_valid_header(b'x-forwarded-host', headers, None)
     if not host:
@@ -192,6 +206,14 @@ def get_host(request: HttpRequest) -> str:
 
 
 def get_scheme(request: HttpRequest) -> str:
+    """Get the scheme from the http request.
+
+    Args:
+        request (HttpRequest): The request.
+
+    Returns:
+        str: The scheme.
+    """
     scheme = _first_valid_header(
         b'x-forwarded-proto',
         request.scope['headers'],

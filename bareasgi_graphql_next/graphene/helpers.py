@@ -2,15 +2,14 @@
 
 import json
 import logging
-
 from typing import Any, Callable, Optional
 
-from graphene import Schema
-from bareasgi import Application
 from bareasgi import (
+    Application,
     LifespanRequest,
     HttpMiddlewareCallback
 )
+from graphene import Schema
 
 from .controller import GrapheneController
 

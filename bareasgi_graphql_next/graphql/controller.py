@@ -15,12 +15,16 @@ from typing import (
 
 import graphql
 
-from graphql import GraphQLSchema, ExecutionResult
-from graphql.execution import MiddlewareManager
-from graphql.subscription.map_async_iterator import MapAsyncIterator
 from bareasgi import HttpRequest, WebSocketRequest
+from graphql import (
+    ExecutionResult,
+    GraphQLSchema,
+    MapAsyncIterator,
+    MiddlewareManager
+)
 
 from ..controller import GraphQLControllerBase
+
 from .websocket_handler import GraphQLWebSocketHandler
 
 

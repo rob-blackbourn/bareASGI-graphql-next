@@ -11,12 +11,11 @@ from typing import (
 )
 
 from bareasgi import WebSocketRequest, HttpRequest
-import graphene
-from graphql import ExecutionResult
-from graphql.execution import MiddlewareManager
-from graphql.subscription.map_async_iterator import MapAsyncIterator
+from graphene import Schema
+from graphql import ExecutionResult, MiddlewareManager, MapAsyncIterator
 
 from ..controller import GraphQLControllerBase
+
 from .websocket_handler import GrapheneWebSocketHandler
 
 
@@ -25,7 +24,7 @@ class GrapheneController(GraphQLControllerBase):
 
     def __init__(
             self,
-            schema: graphene.Schema,
+            schema: Schema,
             path_prefix: str,
             middleware: Optional[Union[Tuple, List, MiddlewareManager]],
             ping_interval: float,
@@ -35,7 +34,7 @@ class GrapheneController(GraphQLControllerBase):
         """Create a Graphene controller
 
         Args:
-            schema (graphene.Schema): The Graphene schema
+            schema (Schema): The Graphene schema
             path_prefix (str): The path prefix.
             middleware (Optional[Union[Tuple, List, MiddlewareManager]): The
                 middleware. Defaults to None.

@@ -4,6 +4,7 @@ WebSocket handler
 
 from bareasgi import WebSocketRequest
 import graphql
+
 from .websocket_instance import GraphQLWebSocketHandlerInstance
 
 

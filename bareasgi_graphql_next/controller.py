@@ -21,19 +21,21 @@ from typing import (
 )
 from urllib.parse import parse_qs, urlencode
 
-import graphql
-from graphql import ExecutionResult
-from graphql.error.graphql_error import GraphQLError
-from graphql.execution import MiddlewareManager
-from graphql.subscription.map_async_iterator import MapAsyncIterator
-from bareasgi import Application
 from bareasgi import (
+    Application,
     HttpRequest,
     HttpResponse,
     WebSocketRequest,
     HttpMiddlewareCallback
 )
 from bareutils import text_reader, text_writer, response_code, header
+import graphql
+from graphql import (
+    ExecutionResult,
+    GraphQLError,
+    MapAsyncIterator,
+    MiddlewareManager
+)
 
 from .template import make_template
 from .utils import (

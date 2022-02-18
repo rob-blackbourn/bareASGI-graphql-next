@@ -3,9 +3,8 @@
 from typing import Any, Dict, Optional
 
 from bareasgi import WebSocketRequest
-import graphene
-import graphql
-from graphql.subscription.map_async_iterator import MapAsyncIterator
+from graphene import Schema
+from graphql import ExecutionResult, MapAsyncIterator
 
 from ..websocket_instance import GraphQLWebSocketHandlerInstanceBase
 
@@ -15,7 +14,7 @@ class GrapheneWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
 
     def __init__(
             self,
-            schema: graphene.Schema,
+            schema: Schema,
             request: WebSocketRequest
     ) -> None:
         super().__init__(request.web_socket)
@@ -40,7 +39,7 @@ class GrapheneWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
             query: str,
             variables: Optional[Dict[str, Any]],
             operation_name: Optional[str]
-    ) -> graphql.ExecutionResult:
+    ) -> ExecutionResult:
         return await self.schema.execute_async(
             source=query,
             variable_values=variables,

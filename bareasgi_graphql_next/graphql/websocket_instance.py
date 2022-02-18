@@ -11,8 +11,7 @@ from typing import (
 
 from bareasgi import WebSocketRequest
 import graphql
-from graphql import ExecutionResult, GraphQLSchema
-from graphql.subscription.map_async_iterator import MapAsyncIterator
+from graphql import ExecutionResult, GraphQLSchema, MapAsyncIterator
 
 from ..websocket_instance import GraphQLWebSocketHandlerInstanceBase
 

@@ -20,8 +20,7 @@ from typing import (
 
 from bareasgi import WebSocket
 import graphql
-from graphql import ExecutionResult, GraphQLError
-from graphql.subscription.map_async_iterator import MapAsyncIterator
+from graphql import ExecutionResult, GraphQLError, MapAsyncIterator
 
 from .utils import has_subscription
 

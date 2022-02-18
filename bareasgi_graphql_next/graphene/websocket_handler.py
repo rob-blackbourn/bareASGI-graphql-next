@@ -1,7 +1,7 @@
 """Graphene support"""
 
 from bareasgi import WebSocketRequest
-import graphene
+from graphene import Schema
 
 from .websocket_instance import GrapheneWebSocketHandlerInstance
 
@@ -9,11 +9,11 @@ from .websocket_instance import GrapheneWebSocketHandlerInstance
 class GrapheneWebSocketHandler:
     """Graphene WebSocket handler"""
 
-    def __init__(self, schema: graphene.Schema):
+    def __init__(self, schema: Schema):
         """Graphene WebSocket handler
 
         Args:
-            schema (graphene.Schema): The schema
+            schema (Schema): The schema
         """
         self.schema = schema
 
