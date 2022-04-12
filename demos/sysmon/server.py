@@ -122,8 +122,8 @@ def start_server() -> None:
 
     http_server = 'hypercorn'  # 'hypercorn' or 'uvicorn'
     host = '0.0.0.0'
-    port = 9009
-    ssl_enabled = False
+    port = 10017
+    ssl_enabled = True
     certfile = os.path.expanduser('~/.keys/server.crt')
     keyfile = os.path.expanduser('~/.keys/server.key')
     # certfile = os.path.expanduser('~/.keys/www.jetblack.net.crt')

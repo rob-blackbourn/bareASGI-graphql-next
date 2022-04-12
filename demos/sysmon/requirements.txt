@@ -1,2 +1,2 @@
-bareASGI-cors==4.0.0a0
+bareASGI-cors==4.1.0
 psutil

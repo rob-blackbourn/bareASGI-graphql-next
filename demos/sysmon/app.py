@@ -45,6 +45,16 @@ async def graphql_handler(request: HttpRequest) -> HttpResponse:
     return HttpResponse(200, [(b'content-type', b'text/html')], text_writer(html))
 
 
+async def get_coookie(_request: HttpRequest) -> HttpResponse:
+    """A response handler which returns a form and sets some cookies"""
+    headers = [
+        (b'content-type', b'text/plain'),
+        (b'set-cookie', b'first=first cookie'),
+        (b'set-cookie', b'second=second cookie'),
+    ]
+    return HttpResponse(200, headers, text_writer("Cookie sent"))
+
+
 def make_application() -> Application:
     """Make the application"""
 
@@ -60,8 +70,9 @@ def make_application() -> Application:
         shutdown_handlers=[stop_service],
         middlewares=[cors_middleware]
     )
-    add_graphql_next(app, schema, '/sysmon')
+    add_graphql_next(app, schema, '/sysmon/api')
 
-    app.http_router.add({'GET'}, '/sysmon/graphql2', graphql_handler)
+    app.http_router.add({'GET'}, '/sysmon/api/graphql2', graphql_handler)
+    app.http_router.add({'GET'}, '/sysmon/api/get-cookie', get_coookie)
 
     return app

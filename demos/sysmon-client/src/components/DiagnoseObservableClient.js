@@ -1,4 +1,7 @@
 import { Component } from 'react'
+
+import Button from '@mui/material/Button'
+
 import QUERIES from '../queries'
 import CONFIG from '../config'
 import RequestTypeSelector from './RequestTypeSelector'
@@ -98,6 +101,14 @@ class Home extends Component {
     this.stopSubscription()
   }
 
+  handleGetCookie = () => {
+    fetch('http://localhost:9009/sysmon/get-cookie').then(response => {
+      console.log(response)
+      return response.text()
+    }).then(text => console.log('Received: ' + text))
+    .catch(error => console.error(error))
+  }
+
   render() {
     const {
       requestType,
@@ -110,6 +121,7 @@ class Home extends Component {
 
     return (
       <div>
+        <Button onClick={this.handleGetCookie}>Get Cookie</Button>
         <div>
           <RequestTypeSelector
             requestType={requestType}
