@@ -1,4 +1,6 @@
-"""Graphene support"""
+"""Graphene WebSocket handler"""
+
+from typing import Any, Callable
 
 from bareasgi import WebSocketRequest
 from graphene import Schema
@@ -17,6 +19,14 @@ class GrapheneWebSocketHandler:
         """
         self.schema = schema
 
-    async def __call__(self, request: WebSocketRequest) -> None:
-        instance = GrapheneWebSocketHandlerInstance(self.schema, request)
+    async def __call__(
+            self,
+            request: WebSocketRequest,
+            dumps: Callable[[Any], str]
+    ) -> None:
+        instance = GrapheneWebSocketHandlerInstance(
+            self.schema,
+            request,
+            dumps
+        )
         await instance.start(request.scope['subprotocols'])

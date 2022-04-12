@@ -1,7 +1,6 @@
-"""
-WebSocket handler
-"""
+"""GraphQL WebSocket handler"""
 
+from typing import Any, Callable
 from bareasgi import WebSocketRequest
 import graphql
 
@@ -19,6 +18,14 @@ class GraphQLWebSocketHandler:
         """
         self.schema = schema
 
-    async def __call__(self, request: WebSocketRequest) -> None:
-        instance = GraphQLWebSocketHandlerInstance(self.schema, request)
+    async def __call__(
+            self,
+            request: WebSocketRequest,
+            dumps: Callable[[Any], str]
+    ) -> None:
+        instance = GraphQLWebSocketHandlerInstance(
+            self.schema,
+            request,
+            dumps
+        )
         await instance.start(request.scope['subprotocols'])

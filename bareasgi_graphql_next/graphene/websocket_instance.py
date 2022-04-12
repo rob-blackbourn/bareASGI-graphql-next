@@ -1,6 +1,6 @@
-"""Graphene support"""
+"""Graphene WebSocket instance"""
 
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from bareasgi import WebSocketRequest
 from graphene import Schema
@@ -15,9 +15,10 @@ class GrapheneWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
     def __init__(
             self,
             schema: Schema,
-            request: WebSocketRequest
+            request: WebSocketRequest,
+            dumps: Callable[[Any], str]
     ) -> None:
-        super().__init__(request.web_socket)
+        super().__init__(request.web_socket, dumps)
         self.schema = schema
         self.request = request
 

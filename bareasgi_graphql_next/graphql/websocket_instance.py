@@ -1,9 +1,8 @@
-"""
-GraphQL WebSocket instance
-"""
+"""GraphQL WebSocket instance"""
 
 from typing import (
     Any,
+    Callable,
     Dict,
     Optional,
     cast
@@ -22,9 +21,10 @@ class GraphQLWebSocketHandlerInstance(GraphQLWebSocketHandlerInstanceBase):
     def __init__(
             self,
             schema: GraphQLSchema,
-            request: WebSocketRequest
+            request: WebSocketRequest,
+            dumps: Callable[[Any], str]
     ) -> None:
-        super().__init__(request.web_socket)
+        super().__init__(request.web_socket, dumps)
         self.schema = schema
         self.request = request
 

@@ -7,6 +7,7 @@ import logging
 from typing import (
     Any,
     AsyncIterator,
+    Callable,
     Dict,
     Iterable,
     List,
@@ -51,10 +52,11 @@ Id = Union[str, int]
 class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
     """A GraphQL WebSocket handler instance"""
 
-    def __init__(self, web_socket: WebSocket) -> None:
+    def __init__(self, web_socket: WebSocket, dumps: Callable[[Any], str]) -> None:
         self.web_socket = web_socket
         self._subscriptions: MutableMapping[Id, asyncio.Future] = {}
         self._is_closed = False
+        self.dumps = dumps
 
     async def start(self, subprotocols: Iterable[str]):
         """Start the WebSocket connection
@@ -298,9 +300,8 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
 
         await self.web_socket.send(self._to_message(GQL_DATA, id_, result))
 
-    @classmethod
     def _to_message(
-            cls,
+            self,
             type_: str,
             id_: Optional[Id] = None,
             payload: Optional[Any] = None
@@ -310,7 +311,7 @@ class GraphQLWebSocketHandlerInstanceBase(metaclass=ABCMeta):
             message['id'] = id_
         if payload is not None:
             message['payload'] = payload
-        return json.dumps(message)
+        return self.dumps(message)
 
     @classmethod
     def _parse_start_payload(

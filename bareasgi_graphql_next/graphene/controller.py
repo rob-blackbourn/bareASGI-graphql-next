@@ -82,4 +82,4 @@ class GrapheneController(GraphQLControllerBase):
         Args:
             request (WebSocketRequest): The request
         """
-        await self.ws_subscription_handler(request)
+        await self.ws_subscription_handler(request, self.dumps)
