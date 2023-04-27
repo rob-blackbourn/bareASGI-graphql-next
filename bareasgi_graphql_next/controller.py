@@ -435,7 +435,16 @@ class GraphQLControllerBase(metaclass=ABCMeta):
         # Handle a subscription by returning 201 (Created) with
         # the url location of the subscription.
         LOGGER.debug("Redirecting subscription request.")
-        scheme = request.scope['scheme']
+        # TODO: handle 'forwarded' header.
+        forwarded_proto = header.find(
+            b'x-forwarded-proto',
+            request.scope['headers']
+        )
+        scheme = (
+            forwarded_proto.decode()
+            if forwarded_proto is not None
+            else request.scope['scheme']
+        )
         host = cast(
             bytes,
             header.find(  # type: ignore
