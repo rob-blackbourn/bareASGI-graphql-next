@@ -1,2 +1,0 @@
-bareASGI-cors==4.1.0
-psutil
